@@ -3,14 +3,17 @@ from nodes.nodes import (Program, Label, Assign, If_Goto, Goto, Action,
     Bi_Operator, Uni_Operator, Number, String, Id
 )
 
+#Excepcion de Error Semantico
 class SemanticError(Exception):
     pass
 
+#Clase que define el analizador semantico
 class SemanticAnalyzer:
     def __init__(self):
         self.declared_vars = set()
         self.declared_labels = set()
     
+    #Metodo Clave
     def Analyze(self, program: Program):
         self.declared_vars.clear()
         self.declared_labels.clear()

@@ -75,6 +75,7 @@ class Uni_Operator(AstNode):
     operator : str
     operand : AstNode
 
+#Printear los nodos
 def DumpAst(node, indent=0):
     pad = " " * indent 
     if hasattr(node, "__dataclass_fields__"):
