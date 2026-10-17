@@ -1,69 +1,111 @@
-from re import I
 from nodes.nodes import (Program, Label, Assign, IfGoto, Goto, ActionCall,
-    BiOper, UniOper, Number, String, Id, FunctionCall
-)
+    BiOper, UniOper, Number, String, Id, FunctionCall)
+from .catalog import Catalog, default_catalog
 
 #Excepcion de Error Semantico
 class SemanticError(Exception):
-    pass
+    def __init__(self, errors):
+        self.errors = list(errors)
+        super().__init__("\n".join(f"linea {line}: {msg}" if line else msg for line, msg in self.errors))
 
 #Clase que define el analizador semantico
 class SemanticAnalyzer:
     def __init__(self):
-        self.declared_vars = set()
-        self.declared_labels = set()
+        self.catalog = default_catalog()
+        self.Reset()
     
-    #Metodo Clave
-    def Analyze(self, program: Program):
-        self.declared_vars.clear()
-        self.declared_labels.clear()
-        
-        if program.head: self.declared_vars.update({'creature', 'faction', 'health', 'vision', 'lifespan'})
-        
-        for s in program.body:
-            if isinstance(s, Label):
-                if s.name in self.declared_labels:
-                    raise SemanticError(f"Etiqueta Duplicada: '{s.name}'.")
-                self.declared_labels.add(s.name)
-        
-        for s in program.body:
-            self.VisitStatemnet(s)
+    def Reset(self):
+        self.errors : list[tuple[int, str]] = []
+        self.warnings: list[tuple[int, str]] = []
+        self.labels : dict[str, [tuple[int, int]]] = {} # { Nombre : [Indice, Linea] }
+        self.gotos : list[tuple[str, int]] = [] # [Destino, Linea]
+        self.assigned : set[str] = set()
+        self.uses : list[tuple[str, int]] = [] # [Nombre, Linea]
+        self.index = 0
     
-    #Analizar instrucciones
-    def VisitStatemnet(self, statment):
-        if isinstance(statment, Label): pass
+    # Metodo Principal: Analiza la semantica del archivo .ins
+    def Analyze(self, program):
+        self.Reset()
         
-        elif isinstance(statment, Assign):
-            self.VisitExpression(statment.value)
-            self.declared_vars.add(statment.name)
-            
-        elif isinstance(statment, Goto):
-            if statement.target not in self.declared_labels:
-                raise SemanticError(f"Error en goto: Etiqueta de Destino '{statment.target}' NO declarada.")
-            
-        elif isinstance(statment, If_Goto):
-            self.VisitExpression(statment.condition)
-            if statement.target not in self.declared_labels:
-                raise SemanticError(f"Error en if...goto: Etiqueta de Destino '{statment.target}' NO declarada.")
-            
-        elif isinstance(statment, Action):
-            for a in statment.args:
-                self.VisitExpression(a)
-                
+        for index, statement in enumerate(program.body):
+            self.index = index
+            self.Visit(statement)
+        
+        self.Resolve()
+        
+        if self.errors:
+            raise SemanticError(sorted(self.errors, key=lambda e: (e[0] == 0, e[0])))
+        
+        program.labels = {name: idx for name, (idx, _) in self._labels.items()}
+    
+    # Metodo para llamar a las funciones de visista de cada nodo respectivamente
+    def Visit(self, node):
+        name = type(node).__name__
+        method = getattr(self, f"Visit_{name}", None)
+        return method(node)
+    
+    # Metodo para analizar llamados de funciones o acciones
+    def CheckCall(self, node, kind: str, arity: int | None, other_kind: str, other_arity: int | None):
+        if arity is None:
+            error = ""
+            if other_arity is not None: error = f"es una {other_kind}, no una {kind}."
+            self.errors.append((node.line, f"{kind.upper()} desconocida: {node.name} {error}"))
+        elif len(node.args) != arity:
+            self.errors.append((node.line, f"La {kind} {node.name} espera {arity} argumento(s), pero ha recibido {len(node.args)}"))
+        for a in node.args:
+            self.Visit(a)
+
+    # Metodos para visitar los distintos tipos de nodos AST
+    def Visit_Label(self, node):
+        if node.name in self.labels:
+            first = self.labels[node.name][1]
+            self.errors.append((node.line, f"Etiqueta duplicada '{node.name}': ya definida en linea {first}"))
         else:
-            raise SemanticError(f"Instruccion NO reconocida: '{type(statment).__name__}'.")
+            self.labels[node.name] = (self.index, node.line)
     
-    #Analizar expresiones
-    def VisitExpression(self, exp):
-        if isinstance(exp, (Number, String)): return
-        
-        elif isinstance(exp, Id):
-            if exp.name not in self.declared_vars:
-                raise SemanticError(f"Variable NO definida: '{exp.name}'.")
-            
-        elif isinstance(exp, Bi_Operator):
-            self.VisitExpression(exp.left)
-            self.VisitExpression(exp.right)
-            
+    def Visit_Assign(self, node):
+        self.Visit(node.value)
+        kind = self.catalog.read_only_kind(node.name)
+        if kind:
+            self.errors.append((node.line, f"No se puede asignar a '{node.name}': es una {kind}"))
         else:
-            raise SemanticError(f"Expresion NO reconocida: '{type(exp).__name__}'.")
+            self.assigned.add(node.name)
+    
+    def Visit_Goto(self, node):
+        self.gotos.append((node.target, node.line))
+    
+    def Visit_IfGoto(self, node):
+        self.Visit(node.condition)
+        self.Visit_Goto(node)
+    
+    def Visit_ActionCall(self, node):
+        self.CheckCall(node, "accion", self.catalog.action_arity(node.name), "function", self.catalog.function_arity(node.name))
+    
+    def Visit_Number(self):
+        pass
+    
+    def Visit_String(self):
+        pass
+    
+    def Visit_Id(self):
+        self.uses.append((node.name, node.line))
+
+    def Visit_FunctionCall(self):
+        self.CheckCall(node, "function", self.catalog.function_arity(node.name), "accion", self.catalog.action_arity(node.name))
+
+    def Visit_BiOper(self):
+        self.Visit(node.left)
+        self.Visit(node.right)
+
+    def Visit_UniOper(self):
+        self.Visit(node.operand)
+    
+    # Metodo para comprobar la correctitud semantica que depende de analizar todo el documento
+    def Resolve(self):
+        # Comprobar goto
+        for target, line in self.gotos:
+            if target not in self.labels:
+                self.errors.append((line, f"'goto' a una etiqueta que no existe: '{target}'"))
+        # Comprobar label 'start'
+        if "start" not in self.labels:
+            self.errors.append((0, f"Falta la etiqueta 'start'"))

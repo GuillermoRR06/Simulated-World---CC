@@ -27,20 +27,27 @@ class Catalog:
         self.constants[name] = value
 
     # Acceder a las acciones/funciones/percepciones/constantes
-    def action_arity(self, name: str) -> int | None:
+    def action_arity(self, name: str):
         return self.actions.get(name)
 
-    def function_arity(self, name: str) -> int | None:
+    def function_arity(self, name: str):
         return self.functions.get(name)
 
-    def is_perception(self, name: str) -> bool:
+    def is_perception(self, name: str):
         return name in self.perceptions
 
-    def is_constant(self, name: str) -> bool:
+    def is_constant(self, name: str):
         return name in self.constants
 
-    def constant_value(self, name: str) -> int | str:
+    def constant_value(self, name: str):
         return self.constants[name]
+
+    def read_only_kind(self, name: str):
+        if name in self._constants:
+            return "constante"
+        if name in self._perceptions:
+            return "percepcion"
+        return None
 
 # Acciones/Funciones/Percepciones/Constantes definidas en la base del lenguaje
 BASE_ACTIONS = {
