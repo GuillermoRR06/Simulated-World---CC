@@ -1,15 +1,17 @@
 import re
 from tokens import TokenType, Token
 
+#Excepcion de error lexico
 class LexerError(Exception):
     pass
 
 class Lexer:
     def __init__(self, code: str):
         self.code = code
-        regex_parts = [f"(?P<{token.name}>{token.pattern})" for token in TokenType]
+        regex_parts = [f"(?P<{n}>{p})" for n, p in TokenType.Get_TokenSpec()]
         self.master_regex = re.compile("|".join(regex_parts))
     
+    #Funcion para tokenizar texto
     def Tokenize(self) -> list[Token]:
         tokens : list[Token] = []
         line, start = 1, 0
@@ -35,7 +37,7 @@ class Lexer:
             
             if token_typ == TokenType.NUMBER: parsed_val = int(val)
             elif token_typ == TokenType.STRING: parsed_val = val[1:-1]
-            elif token_typ == TokenType.ID: parsed_val = TokenType.keywords().get(value, TokenType.ID)
+            elif token_typ == TokenType.ID: token_typ = TokenType.Keywords().get(val, TokenType.ID)
             
             tokens.append(Token(typ=token_typ, val=parsed_val, line=line, col=col))
         

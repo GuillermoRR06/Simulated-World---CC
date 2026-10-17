@@ -1,22 +1,23 @@
 import re
 from dataclasses import dataclass
 from enum import Enum
+from functools import cache
 from typing import Any
 
-class TokenType(enum):
+class TokenType(Enum):
     
     #Literales
-    NUMBER = (r'-?\d+', False)
-    STRING = (r'"([^"\n]*)"', False)
-    ID = (r'[a-zA-z_]\w*', False)
+    NUMBER = (r'\d+', False)
+    STRING = (r'"[^"\n]*"', False)
+    ID = (r'[A-Aa-z_]\w*', False)
     
     #Operadores de Comparacion
     EQUAL = (r'==', False)
     NOT_EQUAL = (r'!=', False)
-    GREATER = (r'>', False)
-    LESS = (r'<', False)
     GREATER_EQUAL = (r'>=', False)
     LESS_EQUAL = (r'<=', False)
+    GREATER = (r'>', False)
+    LESS = (r'<', False)
     
     #Operadores Aritmeticos
     ASSIGN = (r'=', False)
@@ -24,29 +25,29 @@ class TokenType(enum):
     MINUS = (r'-', False)
     MULTIPLY = (r'\*', False)
     DIVIDE = (r'/', False)
-    REMINDER = (r'%', False)
-    
-    #Operadores Logicos
-    NOT = (r'\bnot\b', True)
-    AND = (r'\band\b', True)
-    OR = (r'\bor\b', True)
+    REMAINDER = (r'%', False)
     
     #Delimitadores
     LEFT_PAREN = (r'\(', False)
     RIGHT_PAREN = (r'\)', False)
     COMMA = (r',', False)
     COLON = (r':', False)
-    NEWLINE = (r'\n+', False)
-    SPACE = (r'[ \t]+', False)
-    EOF = (r'$', False)
-    MISMATCH = (r'.', False)
     
     #Estructuras de Flujo
-    IF = (r'\bif\b', True)
-    GO_TO = (r'\bgoto\b', True)
+    IF = ('if', True)
+    GO_TO = ('goto', True)
+
+    #Operadores Logicos
+    AND = ('and', True)
+    OR = ('or', True)
+    NOT = ('not', True)
     
-    #Comentario
+    #Ignorables/Especiales
     COMMENT = (r'#[^\n]*', False)
+    NEWLINE = (r'\n+', False)
+    SPACE = (r'[ \t\r]+', False)
+    EOF = ('', False)
+    MISMATCH = (r'.', False)
     
     def __init__(self, pattern: str, is_keyword: bool):
         self.pattern = pattern
@@ -54,14 +55,13 @@ class TokenType(enum):
         self._compiled_regex = re.compile(f"{pattern}")
     
     @classmethod
-    def keywords(cls) -> dict[str, 'TokenType']:
-        if not hasattr(cls, "kw_map"):
-            cls._kw_map = {member.name.lower(): x for x in cls if x.is_keyword}
-        return cls._kw_map
+    @cache
+    def Keywords(cls) -> dict[str, 'TokenType']:
+        return {t.pattern: t for t in cls if t.is_keyword}
     
     @classmethod
-    def get_token_spec(cls) -> list[tuple[str, str]]:
-        return [(token.name, token.pattern) for token in cls]
+    def Get_TokenSpec(cls) -> list[tuple[str, str]]:
+        return [(t.name, t.pattern) for t in cls if not t.is_keyword and t is not cls.EOF]
 
 @dataclass
 class Token:
