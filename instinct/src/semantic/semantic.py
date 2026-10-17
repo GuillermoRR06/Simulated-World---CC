@@ -1,6 +1,6 @@
 from re import I
-from nodes.nodes import (Program, Label, Assign, If_Goto, Goto, Action,
-    Bi_Operator, Uni_Operator, Number, String, Id
+from nodes.nodes import (Program, Label, Assign, IfGoto, Goto, ActionCall,
+    BiOper, UniOper, Number, String, Id, FunctionCall
 )
 
 #Excepcion de Error Semantico

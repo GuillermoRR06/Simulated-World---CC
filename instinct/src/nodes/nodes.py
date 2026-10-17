@@ -1,9 +1,19 @@
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import List
 
-# Tipo Base para Polimorfismo
+# Tipo Raiz
 @dataclass
 class AstNode:
+    line: int = field(default=0, kw_only=True, compare=False, repr=False)
+
+# Tipo que representa Expresiones
+@dataclass
+class Expression(AstNode):
+    pass
+
+# Tipo que representa Instrucciones
+@dataclass
+class Statement(AstNode):
     pass
 
 # Cabecera del Programa
@@ -18,79 +28,87 @@ class Header(AstNode):
 # Nodo Raiz que describe un Programa
 @dataclass
 class Program(AstNode):
-    head : Header
-    body : List[AstNode]
+    head: Header
+    body: list[Statement]
+    labels: dict[str, int] = field(default_factory=dict, compare=False, repr=False)
 
 # Nodos que describen las instrucciones
 @dataclass
-class Label(AstNode):
+class Label(Statement):
     name : str
 
 @dataclass
-class Assign(AstNode):
+class Assign(Statement):
     name : str
-    value : AstNode
+    value : Expression
 
 @dataclass
-class Goto(AstNode):
+class Goto(Statement):
     target : str
 
 @dataclass
-class If_Goto(AstNode):
-    condition : AstNode
+class IfGoto(Statement):
+    condition : Expression
     target : str
 
 @dataclass
-class Action(AstNode):
+class ActionCall(Statement):
     name : str
-    args : List[AstNode]
+    args : List[Expression]
 
 # Nodos que describen las expresiones
 @dataclass
-class Number(AstNode):
+class Number(Expression):
     value : int
 
 @dataclass
-class String(AstNode):
-    value : int
+class String(Expression):
+    value : str
 
 @dataclass
-class Id(AstNode):
+class Id(Expression):
     name : str
 
 @dataclass
-class Function_Call(AstNode):
+class FunctionCall(Expression):
     name : str
-    args : List[AstNode]
+    args : List[Expression]
 
 # Nodos que describen los operadores
 @dataclass
-class Bi_Operator(AstNode):
-    left : AstNode
+class BiOper(Expression):
+    left : Expression
     operator : str
-    right : AstNode
+    right : Expression
 
 @dataclass
-class Uni_Operator(AstNode):
+class UniOper(Expression):
     operator : str
-    operand : AstNode
+    operand : Expression
 
 #Printear los nodos
-def DumpAst(node, indent=0):
-    pad = " " * indent 
-    if hasattr(node, "__dataclass_fields__"):
-        print(f"{pad}{node.__class__.__name__}:")
-        for i in node.__dataclass_fields__:
-            value = getattr(node, field)
-            if isinstance(value, list):
-                print(f"{pad} {i}: [")
-                for j in value:
-                    DumpAst(item, indent+2)
-                print(f"{pad} ]")
-            elif hasattr(value, "__dataclass_fields__"):
-                print(f"{pad} {i}:")
-                DumpAst(item, indent+2)
+def FormatAst(node, indent: int = 0) -> str:
+    pad = "  " * indent
+    if not isinstance(node, AstNode):
+        return f"{pad}{node!r}"
+ 
+    out = [f"{pad}{type(node).__name__} (linea {node.line})"]
+    for f in fields(node):
+        if f.name == "line":
+            continue
+        value = getattr(node, f.name)
+        if isinstance(value, list):
+            if not value:
+                out.append(f"{pad}  {f.name}: []")
             else:
-                print(f"{pad} {i}: {value}")
-    else:
-        print(f"{pad}{node}")
+                out.append(f"{pad}  {f.name}:")
+                out.extend(FormatAst(item, indent + 2) for item in value)
+        elif isinstance(value, AstNode):
+            out.append(f"{pad}  {f.name}:")
+            out.append(FormatAst(value, indent + 2))
+        else:
+            out.append(f"{pad}  {f.name}: {value!r}")
+    return "\n".join(out)
+
+def DumpAst(node, indent: int = 0) -> None:
+    print(FormatAst(node, indent))
