@@ -1,10 +1,8 @@
 from lexer.tokens import TokenType
-
 from nodes.nodes import (
     Program, Header, Label, Goto, IfGoto,
     Assign, ActionCall, Number, String, Id,
-    FunctionCall, BiOper, UniOper
-)
+    FunctionCall, BiOper, UniOper)
 
 class Parser:
     def __init__(self, tokens):
