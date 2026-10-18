@@ -1,5 +1,6 @@
 from .terrain import Terrain
 from .world_object import WorldObject
+from .creature import Creature
 
 class Cell:
     def __init__(self, terrain: Terrain):
@@ -23,3 +24,14 @@ class Cell:
         world_object = self.world_object  #Para guardar el objeto que acabamos de quitar
         self.world_object = None
         return world_object
+
+    def place_creature(self, creature: Creature):
+        if self.is_occupied():
+            raise ValueError("The cell is already occupied")
+
+        self.creature = creature
+
+    def remove_creature(self):
+        creature = self.creature
+        self.creature = None
+        return creature
