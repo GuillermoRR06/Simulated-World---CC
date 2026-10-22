@@ -48,8 +48,8 @@ class HeaderParser():
         for tokens in lines:
             try:
                 key, value = self.ParseEntry(CursorLine(tokens), seen)
-            except ParserError:
-                errors.extend(ParserError.errors)
+            except ParserError as pe:
+                errors.extend(pe.errors)
                 continue
             values[key] = value
             lines_of[key] = tokens[0].line

@@ -1,5 +1,5 @@
 import re
-from tokens import TokenType, Token
+from .tokens import TokenType, Token
 
 #Excepcion de error lexico
 class LexerError(Exception):

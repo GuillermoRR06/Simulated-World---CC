@@ -9,7 +9,7 @@ class TokenType(Enum):
     #Literales
     NUMBER = (r'\d+', False)
     STRING = (r'"[^"\n]*"', False)
-    ID = (r'[A-Aa-z_]\w*', False)
+    ID = (r'[A-Za-z_]\w*', False)
     
     #Operadores de Comparacion
     EQUAL = (r'==', False)
