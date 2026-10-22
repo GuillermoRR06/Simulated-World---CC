@@ -6,7 +6,7 @@ from .statement_parser import StatementParser
 
 class Parser:
     
-    def __init__(self, tokens, headParser, statementParser):
+    def __init__(self, tokens, headParser=None, statementParser=None):
         self.tokens = tokens
         self.head = HeaderParser() if headParser is None else headParser
         self.statements = StatementParser() if statementParser is None else statementParser
@@ -34,7 +34,7 @@ class Parser:
                 errors.extend(pe.errors)
         
         if errors:
-            raise ParseError(sorted(errors, key=lambda e: (e[0] == 0, e[0])))
+            raise ParserError(sorted(errors, key=lambda e: (e[0] == 0, e[0])))
         
         return Program(header, body, line=header.line)
                 

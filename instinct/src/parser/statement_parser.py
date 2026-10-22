@@ -5,7 +5,7 @@ from .cursor_line import CursorLine, Describe
 
 class StatementParser():
     
-    def __init__(self, expressions):
+    def __init__(self, expressions=None):
         self.expressions = ExpressionParser() if expressions is None else expressions
         
         self.statements = {

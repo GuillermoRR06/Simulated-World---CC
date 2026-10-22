@@ -30,7 +30,7 @@ class HeaderParser():
     
     # Campos que no pueden faltar
     FIELDS = {
-        "creaute": NameField(), # Siempre primero
+        "creature": NameField(), # Siempre primero
         "faction": NameField(),
         "health": IntField(1),
         "vision": IntField(1),
@@ -56,7 +56,7 @@ class HeaderParser():
         
         # Analiza si 'creature' aparece primero
         if (lines) and ("creature" in values) and (lines[0][0].val != "creature"):
-            errors.append((lines[0][0].line, "La primera linea no vacia de la cabecera debe ser 'creature <name>"))
+            errors.append((lines[0][0].line, "La primera linea no vacia de la cabecera debe ser 'creature <name>'"))
         
         # Revisa si aparecen el resto de campos
         for key in self.FIELDS:
@@ -69,13 +69,13 @@ class HeaderParser():
         return None, errors
     
     def ParseEntry(self, cursor, seen):
-        key = cursor.Expect(TokenType.ID, f"una clave de la cabecera " f"({", ".join(self, FIELDS)})")
+        key = cursor.Expect(TokenType.ID, f"una clave de la cabecera " f"({", ".join(self.FIELDS)})")
         field = self.FIELDS.get(key.val)
         if field is None:
             cursor.Fail(f"Clave de cabecera desconocida: '{key.val}'")
         if key.val in seen:
             cursor.Fail(f"Clave de cabecera repetida: '{key.val}'")
-        see.add(key.val)
+        seen.add(key.val)
         return key.val, field.Parse(cursor, key.val)
     
     

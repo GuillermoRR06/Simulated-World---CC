@@ -5,8 +5,8 @@ from .cursor_line import CursorLine, Describe
 class ExpressionParser():
     
     BINARY_LEVELS = (
-        (TokenType.OR),
-        (TokenType.AND),
+        (TokenType.OR,),
+        (TokenType.AND,),
         (TokenType.EQUAL, TokenType.NOT_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL, TokenType.GREATER, TokenType.GREATER_EQUAL),
         (TokenType.PLUS, TokenType.MINUS),
         (TokenType.MULTIPLY, TokenType.DIVIDE, TokenType.REMAINDER)
