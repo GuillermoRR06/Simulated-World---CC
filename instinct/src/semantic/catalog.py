@@ -43,9 +43,9 @@ class Catalog:
         return self.constants[name]
 
     def read_only_kind(self, name: str):
-        if name in self._constants:
+        if name in self.constants:
             return "constante"
-        if name in self._perceptions:
+        if name in self.perceptions:
             return "percepcion"
         return None
 
@@ -76,11 +76,11 @@ BASE_PERCEPTIONS = (
 def default_catalog() -> Catalog:
     catalog = Catalog()
     for name, arity in BASE_ACTIONS.items():
-        catalog.register_action(name, arity)
+        catalog.Register_Action(name, arity)
     for name, arity in BASE_FUNCTIONS.items():
-        catalog.register_function(name, arity)
+        catalog.Register_Function(name, arity)
     for name, value in BASE_CONSTANTS.items():
-        catalog.register_constant(name, value)
+        catalog.Register_Constant(name, value)
     for name in BASE_PERCEPTIONS:
-        catalog.register_perception(name)
+        catalog.Register_Perception(name)
     return catalog

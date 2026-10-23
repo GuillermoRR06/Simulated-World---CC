@@ -36,7 +36,7 @@ class SemanticAnalyzer:
         if self.errors:
             raise SemanticError(sorted(self.errors, key=lambda e: (e[0] == 0, e[0])))
         
-        program.labels = {name: idx for name, (idx, _) in self._labels.items()}
+        program.labels = {name: idx for name, (idx, _) in self.labels.items()}
     
     # Metodo para llamar a las funciones de visista de cada nodo respectivamente
     def Visit(self, node):
@@ -81,23 +81,23 @@ class SemanticAnalyzer:
     def Visit_ActionCall(self, node):
         self.CheckCall(node, "accion", self.catalog.action_arity(node.name), "function", self.catalog.function_arity(node.name))
     
-    def Visit_Number(self):
+    def Visit_Number(self, node):
         pass
     
-    def Visit_String(self):
+    def Visit_String(self, node):
         pass
     
-    def Visit_Id(self):
+    def Visit_Id(self, node):
         self.uses.append((node.name, node.line))
 
-    def Visit_FunctionCall(self):
+    def Visit_FunctionCall(self, node):
         self.CheckCall(node, "function", self.catalog.function_arity(node.name), "accion", self.catalog.action_arity(node.name))
 
-    def Visit_BiOper(self):
+    def Visit_BiOper(self, node):
         self.Visit(node.left)
         self.Visit(node.right)
 
-    def Visit_UniOper(self):
+    def Visit_UniOper(self, node):
         self.Visit(node.operand)
     
     # Metodo para comprobar la correctitud semantica que depende de analizar todo el documento
