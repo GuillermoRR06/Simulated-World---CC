@@ -60,12 +60,7 @@ class World:
 
         return creature
 
-    def move_creature(
-        self,
-        creature: Creature,
-        new_x: int,
-        new_y: int
-    ):
+    def move_creature(self, creature: Creature, new_x: int, new_y: int):
         if not self.can_move_to(creature, new_x, new_y):
             raise ValueError("Creature cannot move to that cell")
 
@@ -109,3 +104,11 @@ class World:
             return False
 
         return True
+
+    def get_creatures(self) -> list[Creature]:
+        list_creatures = []
+        for row in self.grid:
+            for cell in row:
+                if cell.creature is not None:
+                    list_creatures.append(cell.creature)
+        return list_creatures

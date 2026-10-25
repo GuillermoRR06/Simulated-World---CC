@@ -9,7 +9,7 @@ class Cell:
 
         self.terrain = terrain
         self.world_object: WorldObject | None = None
-        self.creature = None
+        self.creature: Creature | None = None
 
     def is_occupied(self) -> bool:
         return self.world_object is not None or self.creature is not None

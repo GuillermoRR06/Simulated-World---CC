@@ -1,12 +1,5 @@
 class Species:
-    def __init__(
-        self,
-        name: str,
-        faction: str,
-        initial_health: int,
-        vision: int,
-        lifespan: int
-    ):
+    def __init__(self, name: str, faction: str, initial_health: int, vision: int, lifespan: int):
         if initial_health <= 0:
             raise ValueError("Initial health must be positive")
 

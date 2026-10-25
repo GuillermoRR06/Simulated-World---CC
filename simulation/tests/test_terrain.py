@@ -11,4 +11,6 @@ grass.regenerate()
 
 assert grass.resource == 100
 
-print("Test completed")
+
+instancia = grass.new_instance()
+print(instancia.char)

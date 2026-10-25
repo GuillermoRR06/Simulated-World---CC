@@ -1,6 +1,5 @@
 from .species import Species
 
-
 class Creature:
     def __init__(self, species: Species):
         if species is None:

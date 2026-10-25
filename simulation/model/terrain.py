@@ -2,7 +2,7 @@
 class Terrain:
     def __init__(self, name: str, char: str, resource_max: int, regen: int):
         self.name = name
-        self.char = char
+        self.char = char # Caracter con el que ese elemento sale en el mapa
         self.resource_max = resource_max
         self.regen = regen
         self.resource = resource_max
