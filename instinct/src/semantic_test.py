@@ -11,7 +11,7 @@ def run_test(title, code_str):
         pars = Parser(tokens, None, None)
         ast = pars.Parse()
 
-        analyzer = SemanticAnalyzer()
+        analyzer = SemanticAnalyzer(None)
         analyzer.Analyze(ast)
         
         print(tokens)
@@ -23,7 +23,7 @@ def run_test(title, code_str):
     except Exception as e:
         print(f"Error inesperado {e}")
 
-test_code = """ # uruk.ins
+test_code_1 = """ # uruk.ins
 creature Uruk
 faction isengard
 health 80
@@ -57,5 +57,108 @@ say("meat is back on the menu")
 roar("we are the fighting Uruk-hai")
 goto start """
 
+test_code_2 = """# hobbit.ins
+creature Hobbit
+faction shire
+health 60
+vision 5
+lifespan 300
+start:
+if enemy_dist >= 0 goto flee
+if health > 45 and total_allies < 20 goto breed
+if reserve_here > 0 and health < 80 goto second_breakfast
+if ally_dist > 1 goto go_ally
+wait(1)
+goto start
+flee:
+say("they are taking us to Isengard")
+move(-enemy_dx, -enemy_dy, 2)
+goto start
+second_breakfast:
+consume(0, 0, 10, 10)
+goto start
+go_ally:
+move(ally_dx, ally_dy, 1)
+goto start
+breed:
+if see(x + 1, y) == GROUND goto breed_right
+if see(x - 1, y) == GROUND goto breed_left
+wait(1)
+goto start
+breed_right:
+reproduce(1, 0, 20)
+goto start
+breed_left:
+reproduce(-1, 0, 20)
+goto start
+"""
 
-run_test("Caso del pdf", test_code)
+test_code_3 = """# ent.ins
+creature Ent
+faction fangorn
+health 150
+vision 4
+lifespan 1000
+start:
+home_x = x
+home_y = y
+watch:
+if enemy_dist == 1 goto hit
+if enemies_near > 0 and roars_near == 0 goto warn
+if x != home_x or y != home_y goto go_home
+if health < 150 goto roots
+wait(1)
+goto watch
+hit:
+attack(enemy_dx, enemy_dy, 12)
+goto watch
+warn:
+roar("hoom, hom, do not be hasty")
+goto watch
+roots:
+consume(0, 0, 3, 3)
+goto watch
+go_home:
+dx = (home_x > x) - (home_x < x)
+dy = (home_y > y) - (home_y < y)
+move(dx, dy, 1)
+goto watch
+"""
+
+test_code_4 = """# dwarf.ins
+creature Dwarf
+faction erebor
+health 100
+vision 3
+lifespan 600
+start:
+if last_roar == "khazad ai-menu" goto rescue
+if object_dist == 1 and health < 100 goto mine
+dx = random % 3 - 1
+dy = random % 3 - 1
+steps = 0
+walk:
+if steps >= 5 goto start
+if enemy_dist == 1 goto shout
+move(dx, dy, 1)
+steps = steps + 1
+goto walk
+mine:
+# never too greedily and too deep
+if name(x + object_dx, y + object_dy) != "Rock" goto start
+consume(object_dx, object_dy, 20, 20)
+goto start
+shout:
+roar("khazad ai-menu")
+goto start
+rescue:
+say("and my axe")
+move(ally_dx, ally_dy, 2)
+goto start
+"""
+
+
+run_test("Caso del pdf", test_code_1)
+run_test("Caso del pdf", test_code_2)
+run_test("Caso del pdf", test_code_3)
+run_test("Caso del pdf", test_code_4)

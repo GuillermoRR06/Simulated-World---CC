@@ -10,8 +10,8 @@ class SemanticError(Exception):
 
 #Clase que define el analizador semantico
 class SemanticAnalyzer:
-    def __init__(self):
-        self.catalog = default_catalog()
+    def __init__(self, catalog : Catalog | None):
+        self.catalog = default_catalog() if catalog is None else catalog
         self.Reset()
     
     def Reset(self):
