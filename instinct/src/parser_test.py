@@ -1,0 +1,46 @@
+from lexer.lexer import Lexer
+from nodes.nodes import DumpAst
+from parser.parser import Parser
+
+test_code = """ # uruk.ins
+creature Uruk
+faction isengard
+health 80
+vision 6
+lifespan 400
+start:
+if health < 20 goto flee
+if enemy_dist == 1 goto bite
+if enemy_dist > 0 goto hunt
+if health > 70 and allies_near < 2 goto breed
+if allies_near > 3 goto celebrate
+wander:
+move(random % 3 - 1, random % 3 - 1, 1)
+goto start
+bite:
+consume(enemy_dx, enemy_dy, 15, 15)
+goto start
+hunt:
+move(enemy_dx, enemy_dy, 2)
+goto start
+flee:
+move(-enemy_dx, -enemy_dy, 3)
+goto start
+breed:
+# bred in the pits of Isengard
+if see(x, y + 1) != GROUND goto wander
+reproduce(0, 1, 30)
+goto start
+celebrate:
+say("meat is back on the menu")
+roar("we are the fighting Uruk-hai")
+goto start """
+
+lex = Lexer(test_code)
+tokens = lex.Tokenize()
+print(tokens)
+
+pars = Parser(tokens, None, None)
+program = pars.Parse()
+print("=== AST GENERADO CON ÉXITO ===")
+DumpAst(program)
