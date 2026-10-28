@@ -1,3 +1,4 @@
+from simulation.actions.action import Action
 from simulation.actions.move_action import MoveAction
 from simulation.model.creature import Creature
 from simulation.model.species import Species
@@ -86,3 +87,4 @@ assert world.get_cell(
 
 
 print("MoveAction tests passed")
+

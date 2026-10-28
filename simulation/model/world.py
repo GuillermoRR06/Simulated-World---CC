@@ -1,6 +1,7 @@
 from .terrain import Terrain
 from .cell import Cell
 from .creature import Creature
+from .roar_event import RoarEvent
 
 class World:
     def __init__(self, width: int, height: int, default_terrain: Terrain):
@@ -9,6 +10,9 @@ class World:
 
         self.width = width
         self.height = height
+
+        self.current_roars = []
+        self.previous_roars = []
 
         self.grid = []
 
@@ -112,3 +116,20 @@ class World:
                 if cell.creature is not None:
                     list_creatures.append(cell.creature)
         return list_creatures
+
+    def emit_roar(self, creature: Creature, value) -> RoarEvent:
+
+        if creature.x is None or creature.y is None:
+            raise ValueError(
+                "Creature is not placed in the world"
+            )
+
+        roar = RoarEvent(creature.x, creature.y, str(value))
+
+        self.current_roars.append(roar)
+
+        return roar
+
+    def rotate_roars(self):
+        self.previous_roars = self.current_roars
+        self.current_roars = []

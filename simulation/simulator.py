@@ -11,6 +11,7 @@ class Simulator:
         self.rng = random.Random(seed)
 
     def advance_tick(self):
+        self.world.rotate_roars()
         turn_order = self.world.get_creatures()
 
         self.rng.shuffle(turn_order)
@@ -20,6 +21,10 @@ class Simulator:
                 continue
 
             if creature.x is None or creature.y is None:
+                continue
+
+            if creature.wait_turns_remaining > 0:
+                creature.wait_turns_remaining -= 1
                 continue
 
             self._run_turn(creature)

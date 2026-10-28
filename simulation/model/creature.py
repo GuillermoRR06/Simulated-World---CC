@@ -13,17 +13,15 @@ class Creature:
         self.x: int | None = None
         self.y: int | None = None
 
-    def take_damage(self, amount: int):
-        if amount < 0:
-            raise ValueError("Damage cannot be negative")
+        self.wait_turns_remaining = 0
 
-        self.health = max(0, self.health - amount)
+    def take_damage(self, amount: int):
+        self.health -= amount
 
     def heal(self, amount: int):
-        if amount < 0:
-            raise ValueError("Healing cannot be negative")
-
         self.health += amount
 
     def is_alive(self) -> bool:
         return self.health > 0
+
+    

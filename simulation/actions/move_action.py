@@ -1,8 +1,9 @@
+from .action import Action
 from ..model.creature import Creature
 from ..model.world import World
 
 
-class MoveAction:
+class MoveAction(Action):
     def execute(
         self,
         world: World,
@@ -36,18 +37,3 @@ class MoveAction:
             moved_steps += 1
 
         return moved_steps
-
-    def _validate_direction(
-        self,
-        dx: int,
-        dy: int
-    ):
-        valid_directions = {-1, 0, 1}
-
-        if (
-            dx not in valid_directions
-            or dy not in valid_directions
-        ):
-            raise ValueError(
-                "dx and dy must be -1, 0 or 1"
-            )
