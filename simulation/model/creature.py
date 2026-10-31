@@ -16,7 +16,7 @@ class Creature:
         self.wait_turns_remaining = 0
 
     def take_damage(self, amount: int):
-        self.health -= amount
+        self.health = max(self.health - amount,0)
 
     def heal(self, amount: int):
         self.health += amount

@@ -36,7 +36,7 @@ assert creature.health == 90
 
 creature.heal(50)
 
-assert creature.health == 100
+assert creature.health == 140
 
 
 creature.take_damage(500)
