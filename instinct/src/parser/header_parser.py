@@ -1,5 +1,5 @@
-from lexer.tokens import Token, TokenType
-from nodes.nodes import Header
+from ..lexer.tokens import Token, TokenType
+from ..nodes.nodes import Header
 from .cursor_line import ParserError, CursorLine
 
 # Clases que se auto-parsean, ahorran codigo mas adelante

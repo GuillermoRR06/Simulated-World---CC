@@ -1,4 +1,4 @@
-from nodes.nodes import (Program, Label, Assign, IfGoto, Goto, ActionCall,
+from ..nodes.nodes import (Program, Label, Assign, IfGoto, Goto, ActionCall,
     BiOper, UniOper, Number, String, Id, FunctionCall)
 from .catalog import Catalog, default_catalog
 

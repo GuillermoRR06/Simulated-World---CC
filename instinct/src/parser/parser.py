@@ -1,5 +1,5 @@
-from lexer.tokens import Token, TokenType
-from nodes.nodes import Program, Statement
+from ..lexer.tokens import Token, TokenType
+from ..nodes.nodes import Program, Statement
 from .cursor_line import ParserError, CursorLine
 from .header_parser import HeaderParser
 from .statement_parser import StatementParser

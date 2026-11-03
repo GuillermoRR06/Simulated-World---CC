@@ -1,4 +1,4 @@
-from lexer.tokens import Token, TokenType
+from ..lexer.tokens import Token, TokenType
 
 # Error de Parser
 class ParserError(Exception):

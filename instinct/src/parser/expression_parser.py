@@ -1,5 +1,5 @@
-from lexer.tokens import TokenType
-from nodes.nodes import (Expression, Number, String, Id, FunctionCall, BiOper, UniOper)
+from ..lexer.tokens import TokenType
+from ..nodes.nodes import (Expression, Number, String, Id, FunctionCall, BiOper, UniOper)
 from .cursor_line import CursorLine, Describe
 
 class ExpressionParser():

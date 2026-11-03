@@ -1,5 +1,5 @@
-from lexer.tokens import TokenType
-from nodes.nodes import (Statement, Label, Assign, Goto, IfGoto, ActionCall)
+from ..lexer.tokens import TokenType
+from ..nodes.nodes import (Statement, Label, Assign, Goto, IfGoto, ActionCall)
 from .expression_parser import ExpressionParser
 from .cursor_line import CursorLine, Describe
 

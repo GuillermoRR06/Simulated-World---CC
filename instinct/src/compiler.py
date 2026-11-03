@@ -1,6 +1,6 @@
-from lexer.lexer import Lexer
-from parser.parser import Parser
-from semantic.semantic import SemanticAnalyzer, default_catalog
+from .lexer.lexer import Lexer
+from .parser.parser import Parser
+from .semantic.semantic import SemanticAnalyzer, default_catalog
 
 class Compiler:
     

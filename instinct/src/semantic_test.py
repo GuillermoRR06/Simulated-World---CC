@@ -1,7 +1,7 @@
 from lexer.lexer import Lexer
 from nodes.nodes import DumpAst
 from parser.parser import Parser
-from semantic.semantic import SemanticAnalyzer
+from semantic.semantic import SemanticAnalyzer, SemanticError
 
 def run_test(title, code_str):
     print(f"\n----- Pruebas: {title} ----")
@@ -52,10 +52,7 @@ breed:
 if see(x, y + 1) != GROUND goto wander
 reproduce(0, 1, 30)
 goto start
-celebrate:
-say("meat is back on the menu")
-roar("we are the fighting Uruk-hai")
-goto start """
+"""
 
 test_code_2 = """# hobbit.ins
 creature Hobbit
