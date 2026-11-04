@@ -37,11 +37,8 @@ goto start """
 
 
 print("---TOKENIZANDO---")
-lexer = Lexer(codigo_prueba)
-try:
-    tokens = lexer.Tokenize()
-    for token in tokens:
-        print(token)
-    print("\n El token funciono correctamente")
-except Exception as e:
-    print(f"\n Error en el lexer: {e}")
+lexer = Lexer()
+tokens = lexer.Tokenize(codigo_prueba)
+for token in tokens:
+    print(token)
+print("\n El token funciono correctamente")

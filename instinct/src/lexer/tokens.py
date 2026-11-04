@@ -1,67 +1,78 @@
-import re
 from dataclasses import dataclass
-from enum import Enum
-from functools import cache
+from enum import Enum, auto
 from typing import Any
 
 class TokenType(Enum):
     
     #Literales
-    NUMBER = (r'\d+', False)
-    STRING = (r'"[^"\n]*"', False)
-    ID = (r'[A-Za-z_]\w*', False)
+    NUMBER = auto()
+    STRING = auto()
+    ID = auto()
     
     #Operadores de Comparacion
-    EQUAL = (r'==', False)
-    NOT_EQUAL = (r'!=', False)
-    GREATER_EQUAL = (r'>=', False)
-    LESS_EQUAL = (r'<=', False)
-    GREATER = (r'>', False)
-    LESS = (r'<', False)
+    EQUAL = auto()
+    NOT_EQUAL = auto()
+    GREATER_EQUAL = auto()
+    LESS_EQUAL = auto()
+    GREATER = auto()
+    LESS = auto()
     
     #Operadores Aritmeticos
-    ASSIGN = (r'=', False)
-    PLUS = (r'\+', False)
-    MINUS = (r'-', False)
-    MULTIPLY = (r'\*', False)
-    DIVIDE = (r'/', False)
-    REMAINDER = (r'%', False)
+    ASSIGN = auto()
+    PLUS = auto()
+    MINUS = auto()
+    MULTIPLY = auto()
+    DIVIDE = auto()
+    REMAINDER = auto()
     
     #Delimitadores
-    LEFT_PAREN = (r'\(', False)
-    RIGHT_PAREN = (r'\)', False)
-    COMMA = (r',', False)
-    COLON = (r':', False)
+    LEFT_PAREN = auto()
+    RIGHT_PAREN = auto()
+    COMMA = auto()
+    COLON = auto()
     
     #Estructuras de Flujo
-    IF = ('if', True)
-    GO_TO = ('goto', True)
+    IF = auto()
+    GOTO = auto()
 
     #Operadores Logicos
-    AND = ('and', True)
-    OR = ('or', True)
-    NOT = ('not', True)
+    AND = auto()
+    OR = auto()
+    NOT = auto()
     
     #Ignorables/Especiales
-    COMMENT = (r'#[^\n]*', False)
-    NEWLINE = (r'\n+', False)
-    SPACE = (r'[ \t\r]+', False)
-    EOF = ('', False)
-    MISMATCH = (r'.', False)
-    
-    def __init__(self, pattern: str, is_keyword: bool):
-        self.pattern = pattern
-        self.is_keyword = is_keyword
-        self._compiled_regex = re.compile(f"{pattern}")
-    
-    @classmethod
-    @cache
-    def Keywords(cls) -> dict[str, 'TokenType']:
-        return {t.pattern: t for t in cls if t.is_keyword}
-    
-    @classmethod
-    def Get_TokenSpec(cls) -> list[tuple[str, str]]:
-        return [(t.name, t.pattern) for t in cls if not t.is_keyword and t is not cls.EOF]
+    NEWLINE = auto()
+    EOF = auto()
+
+KEYWORDS = {
+    "if" : TokenType.IF,
+    "goto" : TokenType.GOTO,
+    "and" : TokenType.AND,
+    "or" : TokenType.OR,
+    "not" : TokenType.NOT
+}
+
+TWO_CHAR_SYMBOLS = {
+    "==" : TokenType.EQUAL,
+    "!=" : TokenType.NOT_EQUAL,
+    ">=" : TokenType.GREATER_EQUAL,
+    "<=" : TokenType.LESS_EQUAL
+}
+
+ONE_CHAR_SYMBOLS = {
+    ">" : TokenType.GREATER,
+    "<" : TokenType.LESS,
+    "=" : TokenType.ASSIGN,
+    "+" : TokenType.PLUS,
+    "-" : TokenType.MINUS,
+    "*" : TokenType.MULTIPLY,
+    "/" : TokenType.DIVIDE,
+    "%" : TokenType.REMAINDER,
+    "(" : TokenType.LEFT_PAREN,
+    ")" : TokenType.RIGHT_PAREN,
+    "," : TokenType.COMMA,
+    ":" : TokenType.COLON
+}
 
 @dataclass
 class Token:
@@ -71,4 +82,4 @@ class Token:
     col: int
     
     def __repr__(self):
-        return f"Token {self.typ.name}, {self.val!r} at {self.line}:{self.col}"
+        return f"Token {self.typ.name}, linea: {self.line} | columna: {self.col} | valor: {self.val!r}"
