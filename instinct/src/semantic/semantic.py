@@ -6,7 +6,7 @@ from .catalog import Catalog, default_catalog
 class SemanticError(Exception):
     def __init__(self, errors):
         self.errors = list(errors)
-        super().__init__("\n".join(f"linea {line}: {msg}" if line else msg for line, msg in self.errors))
+        super().__init__("\n".join(f"Error Semantico en linea {line}: {msg}" if line else msg for line, msg in self.errors))
 
 #Clase que define el analizador semantico
 class SemanticAnalyzer:
@@ -48,7 +48,7 @@ class SemanticAnalyzer:
     def CheckCall(self, node, kind: str, arity: int | None, other_kind: str, other_arity: int | None):
         if arity is None:
             error = ""
-            if other_arity is not None: error = f"es una {other_kind}, no una {kind}."
+            if other_arity is not None: error = f"Es una {other_kind}, no una {kind}."
             self.errors.append((node.line, f"{kind.upper()} desconocida: {node.name} {error}"))
         elif len(node.args) != arity:
             self.errors.append((node.line, f"La {kind} {node.name} espera {arity} argumento(s), pero ha recibido {len(node.args)}"))
@@ -59,7 +59,7 @@ class SemanticAnalyzer:
     def Visit_Label(self, node):
         if node.name in self.labels:
             first = self.labels[node.name][1]
-            self.errors.append((node.line, f"Etiqueta duplicada '{node.name}': ya definida en linea {first}"))
+            self.errors.append((node.line, f"Etiqueta duplicada '{node.name}', ya definida en linea {first}"))
         else:
             self.labels[node.name] = (self.index, node.line)
     
@@ -67,7 +67,7 @@ class SemanticAnalyzer:
         self.Visit(node.value)
         kind = self.catalog.read_only_kind(node.name)
         if kind:
-            self.errors.append((node.line, f"No se puede asignar a '{node.name}': es una {kind}"))
+            self.errors.append((node.line, f"No se puede asignar a '{node.name}', es una {kind}"))
         else:
             self.assigned.add(node.name)
     

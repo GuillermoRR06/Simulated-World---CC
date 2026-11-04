@@ -4,10 +4,10 @@ from ..lexer.tokens import Token, TokenType
 class ParserError(Exception):
     def __init__(self, errors):
         self.errors = list(errors)
-        super().__init__("\n".join(f"Linea {line}: {msg}" if line else msg for line, msg in self.errors))
+        super().__init__("\n".join(f"Error Sintactico en linea {line}: {msg}" if line else msg for line, msg in self.errors))
 
 def Describe(token):
-    if token is None: return "Final de la linea"
+    if token is None: return "final de la linea"
     if token.typ == TokenType.STRING: return f'"{token.val}"'
     return f"{token.val}"
 

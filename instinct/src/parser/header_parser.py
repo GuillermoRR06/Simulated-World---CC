@@ -69,7 +69,7 @@ class HeaderParser():
         return None, errors
     
     def ParseEntry(self, cursor, seen):
-        key = cursor.Expect(TokenType.ID, f"una clave de la cabecera " f"({", ".join(self.FIELDS)})")
+        key = cursor.Expect(TokenType.ID, f"Una clave de la cabecera " f"({", ".join(self.FIELDS)})")
         field = self.FIELDS.get(key.val)
         if field is None:
             cursor.Fail(f"Clave de cabecera desconocida: '{key.val}'")

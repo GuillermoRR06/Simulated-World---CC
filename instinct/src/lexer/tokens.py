@@ -33,7 +33,7 @@ class TokenType(Enum):
     
     #Estructuras de Flujo
     IF = auto()
-    GOTO = auto()
+    GO_TO = auto()
 
     #Operadores Logicos
     AND = auto()
@@ -46,7 +46,7 @@ class TokenType(Enum):
 
 KEYWORDS = {
     "if" : TokenType.IF,
-    "goto" : TokenType.GOTO,
+    "goto" : TokenType.GO_TO,
     "and" : TokenType.AND,
     "or" : TokenType.OR,
     "not" : TokenType.NOT
