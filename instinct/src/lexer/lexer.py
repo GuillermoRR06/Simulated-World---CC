@@ -1,9 +1,5 @@
 from .tokens import TokenType, Token, KEYWORDS, TWO_CHAR_SYMBOLS, ONE_CHAR_SYMBOLS
-
-#Excepcion de error lexico
-class LexerError(Exception):
-    def __init__(self, msj: str, line: int, column: int):
-        super().__init__(f"Error Lexico en linea {line} | columna {column} : {msj}")
+from ..errors.errors import LexerError
 
 class Lexer:
     def __init__(self):
@@ -13,7 +9,7 @@ class Lexer:
         self.tokens : list[Token] = []
         
     #Funcion para tokenizar texto
-    def Tokenize(self, code) -> list[Token]:
+    def tokenize(self, code) -> list[Token]:
         while self.pos < len(code):
             c = code[self.pos]
             
@@ -42,8 +38,7 @@ class Lexer:
             elif c.isalpha() or c == "_":
                 self.match_id_or_key(code)
             
-            # Si encuentra un simbolo, revisa primero si pertenece a un operador de dos caracteres, si no, revisa si es un operador de un caracter.
-            # Si es una de las cosas anteriores, agrega el token. Si tampoco es, reporta error por caracter desconocido
+            # Si encuentra un simbolo podria ser un operador
             else:
                 self.match_operator(code)
         
@@ -78,12 +73,16 @@ class Lexer:
         self.pos += 1
         self.col += self.pos - start + 1
     
-    # Recibe el numero hasta que encuentra algo que no sea digito. Luego agrega el token
+    # Recibe el numero hasta que encuentra algo que no sea digito (si encuentra una letra o un guion bajo, reporta error).
+    # Luego agrega el token
     def match_number(self, code):
         start = self.pos
         while self.pos < len(code) and code[self.pos].isdigit():
             self.check_caracter(code[self.pos])
             self.pos += 1
+        if self.pos < len(code):
+            if code[self.pos].isalpha() or code[self.pos] == "_":
+                raise LexerError(f"Numero mal escrito: {code[start:self.pos+1]}", self.line, self.col)
         self.tokens.append(Token(TokenType.NUMBER, int(code[start:self.pos]), self.line, self.col))
         self.col += self.pos - start
     

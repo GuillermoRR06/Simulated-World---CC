@@ -3,64 +3,73 @@ from ..nodes.nodes import (Statement, Label, Assign, Goto, IfGoto, ActionCall)
 from .expression_parser import ExpressionParser
 from .cursor_line import CursorLine, Describe
 
-class StatementParser():
-    
-    def __init__(self, expressions=None):
-        self.expressions = ExpressionParser() if expressions is None else expressions
-        
-        self.statements = {
-            TokenType.IF : self.ParseIfGoto,
-            TokenType.GO_TO : self.ParseGoto,
-            TokenType.ID : self.ParseNamed
-        }
-        
-        self.named = {
-            TokenType.COLON : self.ParseLabel,
-            TokenType.ASSIGN : self.ParseAssign,
-            TokenType.LEFT_PAREN : self.ParseActionCall
+# Clase para parsear las lineas de codigo del cuerpo
+class StatementParser:    
+    def __init__(self, cursor: CursorLine, expressions=None):
+        self.STATEMENTS = {
+            TokenType.IF : self.parse_if_goto,
+            TokenType.GOTO : self.parse_goto,
+            TokenType.ID : self.parse_named
         }
     
-    def Parse(self, cursor):
-        first = cursor.Peek()
-        handler = self.statements.get(first.typ)
+        self.NAMED = {
+            TokenType.COLON : self.parse_label,
+            TokenType.ASSIGN : self.parse_assign,
+            TokenType.LEFT_PAREN : self.parse_action_call
+        }
+        self.cursor = cursor
+        self.expressions = ExpressionParser(cursor) if expressions is None else expressions
+    
+    # Verifica que la linea cumpla las formas establecidas. Tambien verifica si sobra alguna expresion al final
+    def parse(self, tokens):
+        self.cursor.load(tokens)
+        first = self.cursor.peek()
+        handler = self.STATEMENTS.get(first.typ)
         if handler is None:
-            cursor.Fail(f"La linea no encaja en ninguna forma valida" f"(empieza con {Describe(first)})")
-        statm = handler(cursor)
-        cursor.ExpectEnd()
+            self.cursor.fail(f"La linea no encaja en ninguna forma valida (empieza con {Describe(first)})")
+        statm = handler()
+        if self.cursor.peek() is not None:
+            self.cursor.fail(f"Sobra {Describe(self.cursor.peek())} al final de la instruccion")
         return statm
     
-    def ParseNamed(self, cursor):
-        second = cursor.Peek(1)
-        handler = self.named.get(second.typ) if second is not None else None
+    # Parsea el token siguiente a un ID, para verificar que encaje con: una llamada a accion, una asignacion, o una definicion de etiqueta
+    def parse_named(self):
+        second = self.cursor.peek(1)
+        handler = self.NAMED.get(second.typ) if second is not None else None
         if handler is None:
-            cursor.Fail(f"Despues de '{cursor.Peek().val}' se esperaba ':', '=' o '(' " f"pero se encontro '{Describe(second)}'.")
-        return handler(cursor)
+            self.cursor.fail(f"Despues de '{self.cursor.peek().val}' se esperaba ':', '=' o '(', pero se encontro '{Describe(second)}'.")
+        return handler()
     
-    def ParseLabel(self, cursor):
-        name = cursor.Advance()
-        cursor.Advance()
-        return Label(name.val, line=name.line)
+    # Parsea una linea donde se define una etiqueta
+    def parse_label(self):
+        name = self.cursor.advance()
+        self.cursor.advance()
+        return Label(name.line, name.val)
     
-    def ParseAssign(self, cursor):
-        name = cursor.Advance()
-        cursor.Advance()
-        return Assign(name.val, self.expressions.Parse(cursor), line=name.line)
+    # Parsea una instruccion de asignacion
+    def parse_assign(self):
+        name = self.cursor.advance()
+        self.cursor.advance()
+        return Assign(name.line, name.val, self.expressions.parse_binary())
     
-    def ParseActionCall(self, cursor):
-        name = cursor.Advance()
-        cursor.Advance()
-        return ActionCall(name.val, self.expressions.ParseArguments(cursor), line=name.line)
+    # Parsea una instruccion de llamada a una accion
+    def parse_action_call(self):
+        name = self.cursor.advance()
+        self.cursor.advance()
+        return ActionCall(name.line, name.val, self.expressions.parse_arguments())
     
-    def ParseGoto(self, cursor):
-        keyword = cursor.Advance()
-        label = cursor.Expect(TokenType.ID, "el nombre de una etiqueta")
-        return Goto(label.val, line=keyword.line)
+    # Parsea una instruccion de goto
+    def parse_goto(self):
+        keyword = self.cursor.advance()
+        label = self.cursor.expect(TokenType.ID, "el nombre de una etiqueta")
+        return Goto(keyword.line, label.val)
     
-    def ParseIfGoto(self, cursor):
-        keyword = cursor.Advance()
-        condition = self.expressions.Parse(cursor)
-        cursor.Expect(TokenType.GO_TO, "'goto' despues de la condicion")
-        label = cursor.Expect(TokenType.ID, "el nombre de una etiqueta")
-        return IfGoto(condition, label.val, line=keyword.line)
+    # Parsea una instruccion de if-goto
+    def parse_if_goto(self):
+        keyword = self.cursor.advance()
+        condition = self.expressions.parse_binary()
+        self.cursor.expect(TokenType.GOTO, "'goto' despues de la condicion")
+        label = self.cursor.expect(TokenType.ID, "el nombre de una etiqueta")
+        return IfGoto(keyword.line, condition, label.val)
     
     

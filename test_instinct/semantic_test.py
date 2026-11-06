@@ -1,13 +1,13 @@
-from lexer.lexer import Lexer
-from nodes.nodes import DumpAst
-from parser.parser import Parser
-from semantic.semantic import SemanticAnalyzer, SemanticError
+from instinct.src.lexer.lexer import Lexer
+from instinct.src.nodes.nodes import DumpAst
+from instinct.src.parser.parser import Parser
+from instinct.src.semantic.semantic import SemanticAnalyzer, SemanticError
 
 def run_test(title, code_str):
     print(f"\n----- Pruebas: {title} ----")
     try:
-        lex = Lexer(code_str)
-        tokens = lex.Tokenize()
+        lex = Lexer()
+        tokens = lex.tokenize(code_str)
         pars = Parser(tokens, None, None)
         ast = pars.Parse()
 

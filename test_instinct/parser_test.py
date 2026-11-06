@@ -1,7 +1,8 @@
-from lexer.lexer import Lexer
-from lexer.tokens import TokenType, Token
+from instinct.src.lexer.lexer import Lexer
+from instinct.src.nodes.nodes import DumpAst
+from instinct.src.parser.parser import Parser
 
-codigo_prueba = """ # uruk.ins
+test_code = """ # uruk.ins
 creature Uruk
 faction isengard
 health 80
@@ -35,10 +36,11 @@ say("meat is back on the menu")
 roar("we are the fighting Uruk-hai")
 goto start """
 
+lex = Lexer()
+tokens = lex.tokenize(test_code)
+print(tokens)
 
-print("---TOKENIZANDO---")
-lexer = Lexer()
-tokens = lexer.Tokenize(codigo_prueba)
-for token in tokens:
-    print(token)
-print("\n El token funciono correctamente")
+pars = Parser(tokens, None, None)
+program = pars.Parse()
+print("=== AST GENERADO CON ÉXITO ===")
+DumpAst(program)

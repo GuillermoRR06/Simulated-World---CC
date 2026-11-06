@@ -8,8 +8,8 @@ class Compiler:
         self.catalog = default_catalog()
     
     def Compile(self, source : str):
-        tokens = Lexer().Tokenize(source)
-        program = Parser(tokens).Parse()
+        tokens = Lexer().tokenize(source)
+        program = Parser(tokens).parse()
         analysis = SemanticAnalyzer(self.catalog)
         analysis.Analyze(program)
         return program

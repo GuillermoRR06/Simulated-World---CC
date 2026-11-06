@@ -1,12 +1,7 @@
 from ..nodes.nodes import (Program, Label, Assign, IfGoto, Goto, ActionCall,
     BiOper, UniOper, Number, String, Id, FunctionCall)
 from .catalog import Catalog, default_catalog
-
-#Excepcion de Error Semantico
-class SemanticError(Exception):
-    def __init__(self, errors):
-        self.errors = list(errors)
-        super().__init__("\n".join(f"Error Semantico en linea {line}: {msg}" if line else msg for line, msg in self.errors))
+from ..errors.errors import SemanticError
 
 #Clase que define el analizador semantico
 class SemanticAnalyzer:

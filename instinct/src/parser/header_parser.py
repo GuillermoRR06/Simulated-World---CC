@@ -1,32 +1,32 @@
-from ..lexer.tokens import Token, TokenType
+from ..lexer.tokens import TokenType
 from ..nodes.nodes import Header
-from .cursor_line import ParserError, CursorLine
+from .cursor_line import CursorLine, Describe
+from ..errors.errors import ParserError
 
 # Clases que se auto-parsean, ahorran codigo mas adelante
-class HeaderField():
-    pass
-
-class NameField(HeaderField):
-    def Parse(self, cursor, key):
-        name = cursor.Expect(TokenType.ID, f"un nombre como valor de '{key}'")
-        cursor.ExpectEnd()
+class NameField():
+    def parse(self, cursor, key):
+        name = cursor.expect(TokenType.ID, f"un nombre como valor de '{key}'")
+        if cursor.peek() is not None:
+            cursor.fail(f"Sobra {Describe(cursor.peek())} al final de la instruccion")
         return name.val
 
-class IntField(HeaderField):
+class IntField():
     def __init__(self, minimum):
         self.minimum = minimum
         
-    def Parse(self, cursor, key):
-        negative = cursor.Match(TokenType.MINUS) is not None
-        num = cursor.Expect(TokenType.NUMBER, f"un numero entero como valor de '{key}'")
-        cursor.ExpectEnd()
+    def parse(self, cursor, key):
+        negative = cursor.match(TokenType.MINUS) is not None
+        num = cursor.expect(TokenType.NUMBER, f"un numero entero como valor de '{key}'")
+        if cursor.peek() is not None:
+            cursor.fail(f"Sobra {Describe(cursor.peek())} al final de la instruccion")
         value = -num.val if negative else num.val
         if value < self.minimum:
-            cursor.Fail(f"'{key}' debe ser un entero mayor o igual que {self.minimum}")
+            cursor.fail(f"'{key}' debe ser un entero mayor o igual que {self.minimum}")
         return value
 
 # Parser de la cabecera
-class HeaderParser():
+class HeaderParser:
     
     # Campos que no pueden faltar
     FIELDS = {
@@ -37,8 +37,11 @@ class HeaderParser():
         "lifespan": IntField(1)
     }
     
+    def __init__(self, cursor: CursorLine):
+        self.cursor = cursor
+    
     # Metodo Principal. Parsea cada linea de la cabecera, acumula errores
-    def Parse(self, lines, closing_line):
+    def parse(self, lines, closing_line):
         errors : list[tuple[int, str]] = []
         values : dict[str, object] = {}
         lines_of : dict[str, int] = {}
@@ -46,8 +49,9 @@ class HeaderParser():
         
         # Parsea cada linea
         for tokens in lines:
+            self.cursor.load(tokens)
             try:
-                key, value = self.ParseEntry(CursorLine(tokens), seen)
+                key, value = self.parse_field(seen)
             except ParserError as pe:
                 errors.extend(pe.errors)
                 continue
@@ -66,17 +70,18 @@ class HeaderParser():
         # Retorna la cabecera parseada o retorna None
         if all(key in values for key in self.FIELDS):
             return Header(**values, line=lines_of["creature"]), errors
+        
         return None, errors
     
-    def ParseEntry(self, cursor, seen):
-        key = cursor.Expect(TokenType.ID, f"Una clave de la cabecera " f"({", ".join(self.FIELDS)})")
+    def parse_field(self, seen):
+        key = self.cursor.expect(TokenType.ID, f"una clave de la cabecera ({", ".join(self.FIELDS)})")
         field = self.FIELDS.get(key.val)
         if field is None:
-            cursor.Fail(f"Clave de cabecera desconocida: '{key.val}'")
+            self.cursor.fail(f"Clave de cabecera desconocida: '{key.val}'")
         if key.val in seen:
-            cursor.Fail(f"Clave de cabecera repetida: '{key.val}'")
+            self.cursor.fail(f"Clave de cabecera repetida: '{key.val}'")
         seen.add(key.val)
-        return key.val, field.Parse(cursor, key.val)
+        return key.val, field.parse(self.cursor, key.val)
     
     
         

@@ -1,10 +1,5 @@
-from ..lexer.tokens import Token, TokenType
-
-# Error de Parser
-class ParserError(Exception):
-    def __init__(self, errors):
-        self.errors = list(errors)
-        super().__init__("\n".join(f"Error Sintactico en linea {line}: {msg}" if line else msg for line, msg in self.errors))
+from ..lexer.tokens import TokenType
+from ..errors.errors import ParserError
 
 def Describe(token):
     if token is None: return "final de la linea"
@@ -14,33 +9,35 @@ def Describe(token):
 # Cursor que permite analizar la sintaxis del codigo linea por linea
 class CursorLine():
     def __init__(self, tokens):
+        self.load(tokens or [])
+    
+    def load(self, tokens=[]):
         self.tokens = tokens
         self.pos = 0
     
-    def Peek(self, offset=0):
-        i = self.pos + offset
+    def peek(self, extra=0):
+        i = self.pos + extra
         return self.tokens[i] if i < len(self.tokens) else None
     
-    def Advance(self):
-        tok = self.tokens[self.pos]
-        self.pos += 1
-        return tok
-    
-    def Match(self, *types):
-        tok = self.Peek()
-        if tok is not None and tok.typ in types:
+    def advance(self):
+        token = self.peek()
+        if token is not None:
             self.pos += 1
-            return tok
+            return token
         return None
     
-    def Fail(self, msg):
-        tok = self.Peek() or self.tokens[-1]
-        raise ParserError([(tok.line, msg)])
+    def match(self, *types):
+        token = self.peek()
+        if token is not None and token.typ in types:
+            self.pos += 1
+            return token
+        return None
     
-    def Expect(self, typ, msg):
-        tok = self.Match(typ)
-        if tok is None: self.Fail(f"Se esperaba {msg} pero se encontro {Describe(self.Peek())}")
-        return tok
+    def fail(self, msg):
+        token = self.peek() or self.tokens[-1]
+        raise ParserError([(token.line, msg)])
     
-    def ExpectEnd(self):
-        if self.Peek() is not None: self.Fail(f"Sobra {Describe(self.Peek())} al final de la instruccion")
+    def expect(self, typ, msg):
+        token = self.match(typ)
+        if token is None: self.fail(f"Se esperaba {msg} pero se encontro {Describe(self.peek())}")
+        return token
