@@ -38,7 +38,7 @@ class Parser:
         if errors:
             raise ParserError(sorted(errors, key=lambda e: (e[0] == 0, e[0])))
         
-        return Program(header.line, header, body, {})
+        return Program(header.line, header, body, [], [])
                 
     
     # Divide los tokens en lineas logicas

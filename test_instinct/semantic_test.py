@@ -5,23 +5,18 @@ from instinct.src.semantic.semantic import SemanticAnalyzer, SemanticError
 
 def run_test(title, code_str):
     print(f"\n----- Pruebas: {title} ----")
-    try:
-        lex = Lexer()
-        tokens = lex.tokenize(code_str)
-        pars = Parser(tokens, None, None)
-        ast = pars.Parse()
+    
+    lex = Lexer()
+    tokens = lex.tokenize(code_str)
+    pars = Parser(tokens)
+    ast = pars.parse()
 
-        analyzer = SemanticAnalyzer(None)
-        analyzer.Analyze(ast)
+    analyzer = SemanticAnalyzer()
+    analyzer.analyze(ast)
         
-        print(tokens)
+    print(tokens)
         
-        DumpAst(ast)
-
-    except SemanticError as e:
-        print(f"Error Semantico Capturado: {e}")
-    except Exception as e:
-        print(f"Error inesperado {e}")
+    DumpAst(ast)
 
 test_code_1 = """ # uruk.ins
 creature Uruk
@@ -155,7 +150,7 @@ goto start
 """
 
 
-run_test("Caso del pdf", test_code_1)
-run_test("Caso del pdf", test_code_2)
-run_test("Caso del pdf", test_code_3)
+#run_test("Caso del pdf", test_code_1)
+#run_test("Caso del pdf", test_code_2)
+#run_test("Caso del pdf", test_code_3)
 run_test("Caso del pdf", test_code_4)

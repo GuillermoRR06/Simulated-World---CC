@@ -40,7 +40,7 @@ lex = Lexer()
 tokens = lex.tokenize(test_code)
 print(tokens)
 
-pars = Parser(tokens, None, None)
+pars = Parser(tokens)
 program = pars.Parse()
 print("=== AST GENERADO CON ÉXITO ===")
 DumpAst(program)

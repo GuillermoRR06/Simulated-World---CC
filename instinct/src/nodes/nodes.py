@@ -44,13 +44,15 @@ class Header(AstNode):
 class Program(AstNode):
     head: Header
     body: list[Statement]
-    labels: list[str]
+    labels: dict[str : int]
+    variables : list[str]
 
     def format(self):
         tokens = ""
         for t in self.body:
             tokens+=f"{t.format(0)}\n"
         return f"{self.head.format()}\n-----Cuerpo-----\n{tokens}\n{self.labels}\n----------------"
+            
 
 # Nodos que describen las instrucciones
 # Sintaxis: <name>:
@@ -59,7 +61,7 @@ class Label(Statement):
     name : str
 
     def format(self, indent):
-        return f"{" "*indent}Label: {self.name}"
+        return f"{" "*indent}Label: {self.name}"    
 
 # Sintaxis: <name> = <expression>
 @dataclass
