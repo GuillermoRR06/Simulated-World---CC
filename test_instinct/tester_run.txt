@@ -1,0 +1,1 @@
+Escribir en la terminal: python -m test_instinct.<nombre del archivo a ejecutar>

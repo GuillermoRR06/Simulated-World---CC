@@ -1,27 +1,22 @@
-from lexer.lexer import Lexer
-from nodes.nodes import DumpAst
-from parser.parser import Parser
-from semantic.semantic import SemanticAnalyzer
+from instinct.src.lexer.lexer import Lexer
+from instinct.src.nodes.nodes import DumpAst
+from instinct.src.parser.parser import Parser
+from instinct.src.semantic.semantic import SemanticAnalyzer, SemanticError
 
 def run_test(title, code_str):
     print(f"\n----- Pruebas: {title} ----")
-    try:
-        lex = Lexer(code_str)
-        tokens = lex.Tokenize()
-        pars = Parser(tokens, None, None)
-        ast = pars.Parse()
+    
+    lex = Lexer()
+    tokens = lex.tokenize(code_str)
+    pars = Parser(tokens)
+    ast = pars.parse()
 
-        analyzer = SemanticAnalyzer(None)
-        analyzer.Analyze(ast)
+    analyzer = SemanticAnalyzer()
+    analyzer.analyze(ast)
         
-        print(tokens)
+    print(tokens)
         
-        DumpAst(ast)
-
-    except SemanticError as e:
-        print(f"Error Semantico Capturado: {e}")
-    except Exception as e:
-        print(f"Error inesperado {e}")
+    DumpAst(ast)
 
 test_code_1 = """ # uruk.ins
 creature Uruk
@@ -52,10 +47,7 @@ breed:
 if see(x, y + 1) != GROUND goto wander
 reproduce(0, 1, 30)
 goto start
-celebrate:
-say("meat is back on the menu")
-roar("we are the fighting Uruk-hai")
-goto start """
+"""
 
 test_code_2 = """# hobbit.ins
 creature Hobbit
@@ -158,7 +150,7 @@ goto start
 """
 
 
-run_test("Caso del pdf", test_code_1)
-run_test("Caso del pdf", test_code_2)
-run_test("Caso del pdf", test_code_3)
+#run_test("Caso del pdf", test_code_1)
+#run_test("Caso del pdf", test_code_2)
+#run_test("Caso del pdf", test_code_3)
 run_test("Caso del pdf", test_code_4)

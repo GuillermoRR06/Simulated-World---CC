@@ -1,6 +1,6 @@
-from lexer.lexer import Lexer
-from nodes.nodes import DumpAst
-from parser.parser import Parser
+from instinct.src.lexer.lexer import Lexer
+from instinct.src.nodes.nodes import DumpAst
+from instinct.src.parser.parser import Parser
 
 test_code = """ # uruk.ins
 creature Uruk
@@ -36,11 +36,11 @@ say("meat is back on the menu")
 roar("we are the fighting Uruk-hai")
 goto start """
 
-lex = Lexer(test_code)
-tokens = lex.Tokenize()
+lex = Lexer()
+tokens = lex.tokenize(test_code)
 print(tokens)
 
-pars = Parser(tokens, None, None)
+pars = Parser(tokens)
 program = pars.Parse()
 print("=== AST GENERADO CON ÉXITO ===")
 DumpAst(program)

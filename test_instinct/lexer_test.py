@@ -1,5 +1,5 @@
-from lexer.lexer import Lexer
-from lexer.tokens import TokenType, Token
+from instinct.src.lexer.lexer import Lexer
+from instinct.src.lexer.tokens import TokenType, Token
 
 codigo_prueba = """ # uruk.ins
 creature Uruk
@@ -28,7 +28,7 @@ goto start
 breed:
 # bred in the pits of Isengard
 if see(x, y + 1) != GROUND goto wander
-reproduce(0, 1, 30)
+reproduce(0, 1, 3w0)
 goto start
 celebrate:
 say("meat is back on the menu")
@@ -37,11 +37,8 @@ goto start """
 
 
 print("---TOKENIZANDO---")
-lexer = Lexer(codigo_prueba)
-try:
-    tokens = lexer.Tokenize()
-    for token in tokens:
-        print(token)
-    print("\n El token funciono correctamente")
-except Exception as e:
-    print(f"\n Error en el lexer: {e}")
+lexer = Lexer()
+tokens = lexer.tokenize(codigo_prueba)
+for token in tokens:
+    print(token)
+print("\n El token funciono correctamente")

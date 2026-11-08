@@ -1,79 +1,89 @@
-from lexer.tokens import TokenType
-from nodes.nodes import (Expression, Number, String, Id, FunctionCall, BiOper, UniOper)
+from ..lexer.tokens import TokenType, Token
+from ..nodes.nodes import (Expression, Number, String, Id, FunctionCall, BiOper_Arithmetic, BiOper_Comparator, BiOper_Logic, UniOper)
 from .cursor_line import CursorLine, Describe
 
-class ExpressionParser():
+class ExpressionParser:
     
-    BINARY_LEVELS = (
-        (TokenType.OR,),
-        (TokenType.AND,),
-        (TokenType.EQUAL, TokenType.NOT_EQUAL, TokenType.LESS, TokenType.LESS_EQUAL, TokenType.GREATER, TokenType.GREATER_EQUAL),
-        (TokenType.PLUS, TokenType.MINUS),
-        (TokenType.MULTIPLY, TokenType.DIVIDE, TokenType.REMAINDER)
-    )
+    BINARY_OPERS = {
+        "or" : BiOper_Logic,
+        "and": BiOper_Logic,
+        "==" : BiOper_Comparator,
+        "!=": BiOper_Comparator,
+        ">=" : BiOper_Comparator,
+        "<=" : BiOper_Comparator,
+        ">" : BiOper_Comparator,
+        "<" : BiOper_Comparator,
+        "+" : BiOper_Arithmetic,
+        "-" : BiOper_Arithmetic,
+        "*" : BiOper_Arithmetic,
+        "/" : BiOper_Arithmetic,
+        "%" : BiOper_Arithmetic
+    }
     
-    def __init__(self):
-        self.primaries = {
-            TokenType.NUMBER : self.ParseNumber,
-            TokenType.STRING : self.ParseString,
-            TokenType.ID : self.ParseId,
-            TokenType.LEFT_PAREN : self.ParseGroup
-        }
+    LEVELS = [
+        ("or",), # Level 0
+        ("and",), # Level 1
+        ("==", "!=", ">=", "<=", ">", "<"), # Level 2
+        ("+", "-"), # Level 3
+        ("*", "/", "%") # Level 4
+    ]
     
-    def Parse(self, cursor):
-        return self.ParseBinary(cursor, 0)
+    def __init__(self, cursor: CursorLine):
+        self.cursor = cursor
     
-    def ParseArguments(self, cursor):
+    # Parsea los argumentos de una funcion/accion
+    def parse_arguments(self):
         args : list[Expression] = []
-        if cursor.Match(TokenType.RIGHT_PAREN):
+        if self.cursor.match(TokenType.RIGHT_PAREN):
             return args
-        args.append(self.Parse(cursor))
-        while cursor.Match(TokenType.COMMA):
-            args.append(self.Parse(cursor))
-        cursor.Expect(TokenType.RIGHT_PAREN, "')' o ','")
+        args.append(self.parse_binary())
+        while self.cursor.match(TokenType.COMMA):
+            args.append(self.parse_binary())
+        self.cursor.expect(TokenType.RIGHT_PAREN, "')' o ','")
         return args
     
-    def ParseBinary(self, cursor, level):
-        if level == len(self.BINARY_LEVELS):
-            return self.ParseUnary(cursor)
-        left = self.ParseBinary(cursor, level+1)
-        while (op := cursor.Match(*self.BINARY_LEVELS[level])) is not None:
-            right = self.ParseBinary(cursor, level+1)
-            left = BiOper(left, op.val, right, line=op.line)
-        return left
-    
-    def ParseUnary(self, cursor):
-        op = cursor.Match(TokenType.MINUS, TokenType.NOT)
-        if op is None:
-            return self.ParsePrimary(cursor)
-        operand = self.ParseUnary(cursor)
-        if op.typ == TokenType.MINUS and isinstance(operand, Number):
-            return Number(-operand.value, line=op.line)
-        return UniOper(op.val, operand, line=op.line)
-    
-    def ParsePrimary(self, cursor):
-        tok = cursor.Peek()
-        handler = self.primaries.get(tok.typ) if tok is not None else None
-        if handler is None:
-            cursor.Fail(f"Se esperaba una expresion pero se encontro {Describe(tok)}.")
-        return handler(cursor)
-    
-    def ParseNumber(self, cursor):
-        tok = cursor.Advance()
-        return Number(tok.val, line=tok.line)
-    
-    def ParseString(self, cursor):
-        tok = cursor.Advance()
-        return String(tok.val, line=tok.line)
-    
-    def ParseId(self, cursor):
-        name = cursor.Advance()
-        if cursor.Match(TokenType.LEFT_PAREN):
-            return FunctionCall(name.val, self.ParseArguments(cursor), line=name.line)
-        return Id(name.val, line=name.line)
-    
-    def ParseGroup(self, cursor):
-        name = cursor.Advance()
-        inner = self.Parse(cursor)
-        cursor.Expect(TokenType.RIGHT_PAREN, "')'")
-        return inner
+    # Parsea las operaciones binarias
+    def parse_binary(self, level=0):
+        if level == len(self.LEVELS):
+            return self.parse_atom()
+        
+        left = self.parse_binary(level+1)
+        
+        while True:
+            token = self.cursor.peek()
+            if token is None or token.typ in (TokenType.NUMBER, TokenType.STRING) or token.val not in self.LEVELS[level]:
+                return left
+            self.cursor.advance()
+            right = self.parse_binary(level+1)
+            left = self.BINARY_OPERS[token.val](token.line, operator=token.val, left=left, right=right)
+
+    # Parsea un atomo (numero, texto, id que puede ser variable o llamada a funcion, operador unario, expresion entre parentesis)
+    def parse_atom(self):
+        token : Token = self.cursor.peek()
+        if token is None:
+            self.cursor.fail(f"Se esperaba una expresion pero se encontro {Describe(token)}.")
+        # Token Numero
+        if token.typ is TokenType.NUMBER:
+            self.cursor.advance()
+            return Number(token.line, token.val)
+        # Token Texto
+        elif token.typ is TokenType.STRING:
+            self.cursor.advance()
+            return String(token.line, token.val)
+        # Token ID (puede ser variable o funcion)
+        elif token.typ is TokenType.ID:
+            self.cursor.advance()
+            if self.cursor.match(TokenType.LEFT_PAREN):
+                return FunctionCall(token.line, token.val, self.parse_arguments())
+            return Id(token.line, token.val)
+        # Token Operador Unario (-, not)
+        elif token.typ in (TokenType.MINUS, TokenType.NOT):
+            self.cursor.advance()
+            return UniOper(token.line, token.val, self.parse_atom())
+        # Token "("
+        elif token.typ is TokenType.LEFT_PAREN:
+            self.cursor.advance()
+            express = self.parse_level0()
+            self.cursor.expect(TokenType.RIGHT_PAREN, "')'")
+            return express
+        self.cursor.fail(f"Se esperaba una expresion pero se encontro {Describe(token)}.")
