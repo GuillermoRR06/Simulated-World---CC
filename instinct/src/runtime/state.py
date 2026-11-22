@@ -6,6 +6,7 @@ class RuntimeState:
         self.program = program
         self.variables : dict[str, int|str] = {}
         self.counter = program.labels["start"]
+        self.sleep_turns = 0
     
     def GotoJump(self, label: str):
         self.counter = self.program.labels[label]

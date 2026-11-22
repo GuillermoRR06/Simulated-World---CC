@@ -17,7 +17,7 @@ class SemanticError(Exception):
 
 # Excepcion de Error en Tiempo de Ejecucion
 class RuntimeError(Exception):
-    def __init__(self, msj: str, line: int):
+    def __init__(self, msj: str, line: int|None):
         super().__init__(msj)
         self.msj = msj
         self.line = line

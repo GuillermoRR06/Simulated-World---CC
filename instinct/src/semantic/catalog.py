@@ -1,15 +1,28 @@
+from ..errors.errors import RuntimeError
+from collections.abc import Callable
+
 class Catalog:
     def __init__(self):
         self.actions: dict[str, int] = {}
         self.functions: dict[str, int] = {}
         self.perceptions: set[str] = set()
         self.constants: dict[str, int | str] = {}
+        
+        # Ejecucion de las acciones
+        self.free_actions : set[str] = set() # No consumen turno
+        self.durations : dict[str, Callable[[list], int]] = {} # Turnos ocupados (wait)
 
     # Seccion para registrar nuevas acciones/funciones/percepciones/constantes
-    def Register_Action(self, name: str, arity: int):
+    def Register_Action(self, name: str, arity: int, consumes_turn: bool = True, duration: Callable[[list], int] | None = None):
         if name in self.actions or name in self.functions:
             raise ValueError(f"Ya existe una accion o funcion llamada '{name}'")
         self.actions[name] = arity
+        
+        if not consumes_turn:
+            self.free_actions.add(name)
+        
+        if duration is not None:
+            self.durations[name] = duration
 
     def Register_Function(self, name: str, arity: int):
         if name in self.actions or name in self.functions:
@@ -48,6 +61,16 @@ class Catalog:
         if name in self.perceptions:
             return "percepcion"
         return None
+    
+    # Consultar sobre las acciones
+    def consumes_turn(self, name: str) -> bool:
+        # Retorna True si consume un turno
+        return name not in self.free_actions
+    
+    def turns_taken(self, name: str, args: list) -> int:
+        # Retorna la cantidad de turnos que consume la accion (1 por defecto)
+        duration = self.durations.get(name)
+        return 1 if duration is None else duration(args)
 
 # Acciones/Funciones/Percepciones/Constantes definidas en la base del lenguaje
 BASE_ACTIONS = {
@@ -73,10 +96,22 @@ BASE_PERCEPTIONS = (
     "roars_near", "last_roar",
 )
 
+BASE_FREE_ACTIONS = {"say"}
+
+# Retorna la cantidad de turnos n que ocupa wait(n)
+def _wait_duration(args: list) -> int:
+    n = args[0]
+    if not isinstance(n, int):
+        raise RuntimeError("'wait' solo recibe un parametro de tipo numero", None)
+    return max(n, 1)
+
+BASE_DURATIONS = {"wait": _wait_duration}
+
+# Crea un catalogo por defecto
 def default_catalog() -> Catalog:
     catalog = Catalog()
     for name, arity in BASE_ACTIONS.items():
-        catalog.Register_Action(name, arity)
+        catalog.Register_Action(name, arity, consumes_turn=(name not in BASE_FREE_ACTIONS), duration=(BASE_DURATIONS.get(name)))
     for name, arity in BASE_FUNCTIONS.items():
         catalog.Register_Function(name, arity)
     for name, value in BASE_CONSTANTS.items():
