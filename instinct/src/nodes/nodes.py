@@ -1,31 +1,29 @@
 from dataclasses import dataclass
 from typing import List
 from abc import ABC, abstractmethod
+from ..errors.errors import RuntimeError
 
 # Tipo Raiz
 @dataclass
-class AstNode:
+class AstNode(ABC):
     line: int
+
+    @abstractmethod
+    def format(self, indent=0):
+        pass
 
 # Tipo que representa Expresiones
 @dataclass
-class Expression(AstNode, ABC):
+class Expression(AstNode):
     
     @abstractmethod
-    def evaluate(self):
-        pass
-
-    @abstractmethod
-    def format(self, indent):
+    def evaluate(self, context):
         pass
 
 # Tipo que representa una Linea
 @dataclass
-class Statement(AstNode, ABC):
-    
-    @abstractmethod
-    def format(self, evaluate):
-        pass
+class Statement(AstNode):
+   pass
 
 # Cabecera del Programa
 @dataclass
@@ -36,7 +34,7 @@ class Header(AstNode):
     vision : int
     lifespan: int
 
-    def format(self):
+    def format(self, indent=0):
         return f"-----Cabecera-----\ncreature : {self.creature}\nfaction : {self.faction}\nhealth : {self.health}\nvision : {self.vision}\nlifespan : {self.lifespan}\n------------------"
 
 # Nodo Raiz que describe un Programa
@@ -47,11 +45,9 @@ class Program(AstNode):
     labels: dict[str : int]
     variables : list[str]
 
-    def format(self):
-        tokens = ""
-        for t in self.body:
-            tokens+=f"{t.format(0)}\n"
-        return f"{self.head.format()}\n-----Cuerpo-----\n{tokens}\n{self.labels}\n----------------"
+    def format(self, indent=0):
+        lines = "\n".join(statement.format(0) for statement in self.body)
+        return f"{self.head.format()}\n-----Cuerpo-----\n{lines}\n{self.labels}\n----------------"
             
 
 # Nodos que describen las instrucciones
@@ -60,8 +56,8 @@ class Program(AstNode):
 class Label(Statement):
     name : str
 
-    def format(self, indent):
-        return f"{" "*indent}Label: {self.name}"    
+    def format(self, indent=0):
+        return f"{" "*indent}Etiqueta: {self.name}"
 
 # Sintaxis: <name> = <expression>
 @dataclass
@@ -69,7 +65,7 @@ class Assign(Statement):
     name : str
     value : Expression
 
-    def format(self, indent):
+    def format(self, indent=0):
         return f"{" "*indent}Asignarle a {self.name}:\n{" "*indent}{self.value.format(indent+2)}"
 
 # Sintaxis: goto <name>
@@ -77,7 +73,7 @@ class Assign(Statement):
 class Goto(Statement):
     target : str
 
-    def format(self, indent):
+    def format(self, indent=0):
         return f"{" "*indent}Goto:\n{" "*indent}Apunta a: {self.target}"
 
 # Sintaxis: if <expression> goto <name>
@@ -86,8 +82,8 @@ class IfGoto(Statement):
     condition : Expression
     target : str
 
-    def format(self, indent):
-        return f"{" "*indent}If-Goto:\n{" "*indent}Condicion:\n{" "*indent}{self.condition.format(indent+2)}\n{" "*indent}Apunta a: {self.target}"
+    def format(self, indent=0):
+        return f"{" "*indent}If-Goto:\n{" "*indent}Condicion:\n{self.condition.format(indent+2)}\n{" "*indent}Apunta a: {self.target}"
 
 # Sintaxis: <name>(<arg_1>, ... <arg_n>)
 @dataclass
@@ -95,11 +91,9 @@ class ActionCall(Statement):
     name : str
     args : List[Expression]
     
-    def format(self, indent):
-        args = ""
-        for t in self.args:
-            args += f"{" "*indent}{t.format(indent+2)}\n"
-        return f"{" "*indent}FunctionCall {self.name}:\n{args}"
+    def format(self, indent=0):
+        args = "".join(f"\n{arg.format(indent + 2)}" for arg in self.args)
+        return f"{" "*indent}Accion {self.name}:{args}"
 
 # Nodos que describen las expresiones
 # Numero
@@ -107,32 +101,32 @@ class ActionCall(Statement):
 class Number(Expression):
     value : int
 
-    def evaluate(self):
+    def evaluate(self, context):
         return self.value
 
-    def format(self, indent):
-        return f"{" "*indent}Number: {self.value}"
+    def format(self, indent=0):
+        return f"{" "*indent}Numero: {self.value}"
 
 # Texto
 @dataclass
 class String(Expression):
     value : str
 
-    def evaluate(self):
+    def evaluate(self, context):
         return self.value
 
-    def format(self, indent):
-        return f"{" "*indent}String: {self.value}"
+    def format(self, indent=0):
+        return f"{" "*indent}Texto: {self.value}"
 
 # Variable
 @dataclass
 class Id(Expression):
     name : str
 
-    def evaluate(self):
-        pass
+    def evaluate(self, context):
+        return context.read_name(self.name)
 
-    def format(self, indent):
+    def format(self, indent=0):
         return f"{" "*indent}Id: {self.name}"
 
 # Llamada a Funcion
@@ -141,14 +135,13 @@ class FunctionCall(Expression):
     name : str
     args : List[Expression]
 
-    def evaluate(self):
-        pass
+    def evaluate(self, context):
+        args = [arg.evaluate(context) for arg in self.args]
+        return context.call_function(self.name, args)
 
-    def format(self, indent):
-        args = ""
-        for t in self.args:
-            args += f"{" "*indent}{t.format(indent+2)}\n"
-        return f"{" "*indent}FunctionCall {self.name}:\n{args}"
+    def format(self, indent=0):
+        args = "".join(f"\n{arg.format(indent + 2)}" for arg in self.args)
+        return f"{" "*indent}Funcion {self.name}:{args}"
 
 # Nodos que describen los operadores
 # Operador Binario Aritmetico
@@ -158,37 +151,28 @@ class BiOper_Arithmetic(Expression):
     operator : str
     right : Expression
 
-    def evaluate(self):
+    def evaluate(self, context):
+        if isinstance(self.left.value, str) or isinstance(self.right.value, str):
+            raise RuntimeError(f"El operador aritmetico {self.operator} intento operar con texto", self.line)
         # Caso: +
         if self.operator == '+':
-            if isinstance(self.left.value, str) or isinstance(self.right.value, str):
-                raise Exception("Error en Tiempo de Ejecucion")
             return self.left.value + self.right.value
-        
         # Caso: -
         elif self.operator == '-':
-            if isinstance(self.left.value, str) or isinstance(self.right.value, str):
-                raise Exception("Error en Tiempo de Ejecucion")
             return self.left.value - self.right.value
-        
         # Caso: *
         elif self.operator == '*':
-            if isinstance(self.left.value, str) or isinstance(self.right.value, str):
-                raise Exception("Error en Tiempo de Ejecucion")
             return self.left.value * self.right.value
         
+        if self.right.evaluate() == 0:
+            raise RuntimeError("Se intento dividir por cero", self.line)
         # Caso: /
         elif self.operator == '/':
-            if isinstance(self.left.value, str) or isinstance(self.right.value, str):
-                raise Exception("Error en Tiempo de Ejecucion")
             return self.left.value // self.right.value
-        
         # Caso: %
-        if isinstance(self.left.value, str) or isinstance(self.right.value, str):
-            raise Exception("Error en Tiempo de Ejecucion")
         return self.left.value % self.right.value
 
-    def format(self, indent):
+    def format(self, indent=0):
         return f"{" "*indent}Operador Binario ({self.operator}):\n{" "*indent}{self.left.format(indent+2)}\n{" "*indent}{self.right.format(indent+2)}"
 
 # Operador Binario Comparador
@@ -198,9 +182,12 @@ class BiOper_Comparator(Expression):
     operator : str
     right : Expression
 
-    def evaluate(self):
+    def evaluate(self, context):
+        if type(self.left.value) != type(self.right.value):
+            raise RuntimeError(f"El operador de comparacion {self.operator} intento comparar un texto y un numero", self.line)
+        
         # Caso: ==
-        if self.operator == '==':
+        elif self.operator == '==':
             if self.left.value == self.right.value:
                 return 1
             return 0
@@ -211,38 +198,32 @@ class BiOper_Comparator(Expression):
                 return 1
             return 0
         
+        if isinstance(self.left.value, str) or isinstance(self.right.value, str):
+            raise RuntimeError(f"El operador de comparacion {self.operator} intento comparar un texto", self.line)
         # Caso: >=
         elif self.operator == '>=':
-            if isinstance(self.left.value, str) or isinstance(self.right.value, str):
-                raise Exception("Error en Tiempo de Ejecucion")
             if self.left.value >= self.right.value:
                 return 1
             return 0
         
         # Caso: <=
         elif self.operator == '<=':
-            if isinstance(self.left.value, str) or isinstance(self.right.value, str):
-                raise Exception("Error en Tiempo de Ejecucion")
             if self.left.value <= self.right.value:
                 return 1
             return 0
 
         # Caso: >
         elif self.operator == '>':
-            if isinstance(self.left.value, str) or isinstance(self.right.value, str):
-                raise Exception("Error en Tiempo de Ejecucion")
             if self.left.value > self.right.value:
                 return 1
             return 0
         
         # Caso: <
-        if isinstance(self.left.value, str) or isinstance(self.right.value, str):
-            raise Exception("Error en Tiempo de Ejecucion")
         if self.left.value < self.right.value:
             return 1
         return 0
 
-    def format(self, indent):
+    def format(self, indent=0):
         return f"{" "*indent}Operador Binario ({self.operator}):\n{" "*indent}{self.left.format(indent+2)}\n{" "*indent}{self.right.format(indent+2)}"
 
 # Operador Binario Logico
@@ -252,7 +233,7 @@ class BiOper_Logic(Expression):
     operator : str
     right : Expression
 
-    def evaluate(self):
+    def evaluate(self, context):
         # Caso: and
         if self.operator == 'and':
             if self.left.value in [0, ""] or self.right.value in [0, ""]:
@@ -264,7 +245,7 @@ class BiOper_Logic(Expression):
             return 0
         return 1
 
-    def format(self, indent):
+    def format(self, indent=0):
         return f"{" "*indent}Operador Binario ({self.operator}):\n{" "*indent}{self.left.format(indent+2)}\n{" "*indent}{self.right.format(indent+2)}"
 
 # Operador Unario (menos, not)
@@ -273,10 +254,11 @@ class UniOper(Expression):
     operator : str
     operand : Expression
 
-    def evaluate(self):
+    def evaluate(self, context):
         # Caso: -
         if self.operator == '-':
-            if isinstance(self.operand.value, str): raise Exception("Error en Tiempo de Ejecucion")
+            if isinstance(self.operand.value, str):
+                raise RuntimeError(f"El operador {self.operator} intento operar con un texto", self.line)
             return -self.operand.value
         
         # Caso : not
@@ -284,7 +266,7 @@ class UniOper(Expression):
             return 1
         return 0
     
-    def format(self, indent):
+    def format(self, indent=0):
         return f"{" "*indent}Operador Unario ({self.operator}):\n{" "*indent}{self.operand.format(indent+2)}"
 
 #Printear los nodos

@@ -14,3 +14,13 @@ class SemanticError(Exception):
     def __init__(self, errors):
         self.errors = list(errors)
         super().__init__("\n".join(f"Error Semantico en linea {line}: {msg}" if line else msg for line, msg in self.errors))
+
+# Excepcion de Error en Tiempo de Ejecucion
+class RuntimeError(Exception):
+    def __init__(self, msj: str, line: int):
+        super().__init__(msj)
+        self.msj = msj
+        self.line = line
+    
+    def __str__(self):
+        return f"Error en Tiempo de Ejecucion en linea {self.line}: {self.msj}"
