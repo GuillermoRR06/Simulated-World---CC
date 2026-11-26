@@ -11,5 +11,5 @@ class Compiler:
         tokens = Lexer().tokenize(source)
         program = Parser(tokens).parse()
         analysis = SemanticAnalyzer(self.catalog)
-        analysis.Analyze(program)
+        analysis.analyze(program)
         return program

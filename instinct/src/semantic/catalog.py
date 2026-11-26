@@ -1,4 +1,4 @@
-from ..errors.errors import RuntimeError
+from ..errors.errors import InstinctRuntimeError
 from collections.abc import Callable
 
 class Catalog:
@@ -102,7 +102,7 @@ BASE_FREE_ACTIONS = {"say"}
 def _wait_duration(args: list) -> int:
     n = args[0]
     if not isinstance(n, int):
-        raise RuntimeError("'wait' solo recibe un parametro de tipo numero", None)
+        raise InstinctRuntimeError("'wait' solo recibe un parametro de tipo numero", None)
     return max(n, 1)
 
 BASE_DURATIONS = {"wait": _wait_duration}

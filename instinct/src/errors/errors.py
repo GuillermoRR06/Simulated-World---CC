@@ -16,7 +16,7 @@ class SemanticError(Exception):
         super().__init__("\n".join(f"Error Semantico en linea {line}: {msg}" if line else msg for line, msg in self.errors))
 
 # Excepcion de Error en Tiempo de Ejecucion
-class RuntimeError(Exception):
+class InstinctRuntimeError(Exception):
     def __init__(self, msj: str, line: int|None):
         super().__init__(msj)
         self.msj = msj

@@ -36,7 +36,7 @@ class RuntimeEngine:
             state.counter += 1
             ends_turn = self.executor.execute_statement(statement, context)
             
-            if state.counter > len(body):
+            if state.counter >= len(body):
                 state.GotoJump("start")
                 return TurnEnd.ACTION if ends_turn else TurnEnd.END_FILE
             

@@ -25,7 +25,7 @@ class ExecutorStatements:
         except RuntimeError as error:
             if error.line is None:
                 error.line = statement.line
-        return True
+        raise
     
     # Lo detecto... y ya
     def execute_Label(self, statement, context):

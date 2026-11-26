@@ -83,7 +83,7 @@ class ExpressionParser:
         # Token "("
         elif token.typ is TokenType.LEFT_PAREN:
             self.cursor.advance()
-            express = self.parse_level0()
+            express = self.parse_binary()
             self.cursor.expect(TokenType.RIGHT_PAREN, "')'")
             return express
         self.cursor.fail(f"Se esperaba una expresion pero se encontro {Describe(token)}.")

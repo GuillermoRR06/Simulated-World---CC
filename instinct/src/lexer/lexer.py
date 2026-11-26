@@ -10,6 +10,7 @@ class Lexer:
         
     #Funcion para tokenizar texto
     def tokenize(self, code) -> list[Token]:
+        self.pos, self.line, self.col, self.tokens = 0, 1, 1, []
         while self.pos < len(code):
             c = code[self.pos]
             
@@ -31,7 +32,7 @@ class Lexer:
                 self.match_string(code)
             
             # Si encuentra un digito deberia empezar un numero
-            elif c.isdigit():
+            elif c in "0123456789":
                 self.match_number(code)
             
             # Si encuentra una letra o un guion bajo, eso es un identificador (o una palabra reservada)
@@ -65,19 +66,18 @@ class Lexer:
         start = self.pos
         self.pos += 1
         while self.pos < len(code) and code[self.pos] not in '"\n':
-            self.check_caracter(code[self.pos])
             self.pos += 1
         if self.pos >= len(code) or code[self.pos] == "\n":
             raise LexerError("Texto sin cerrar (falta la comilla de cierre)", self.line, self.col)
         self.tokens.append(Token(TokenType.STRING, code[start+1:self.pos], self.line, self.col))
         self.pos += 1
-        self.col += self.pos - start + 1
+        self.col += self.pos - start
     
     # Recibe el numero hasta que encuentra algo que no sea digito (si encuentra una letra o un guion bajo, reporta error).
     # Luego agrega el token
     def match_number(self, code):
         start = self.pos
-        while self.pos < len(code) and code[self.pos].isdigit():
+        while self.pos < len(code) and code[self.pos] in "0123456789":
             self.check_caracter(code[self.pos])
             self.pos += 1
         if self.pos < len(code):
@@ -99,7 +99,7 @@ class Lexer:
             self.tokens.append(Token(KEYWORDS[text], text, self.line, self.col))
         else:
             self.tokens.append(Token(TokenType.ID, text, self.line, self.col))
-        self.col += self.pos - start + 1
+        self.col += self.pos - start
     
     # Revisa si es un operador de dos caracteres o de un caracter. Entonces agrega el token respectivo o lanza error
     def match_operator(self, code):

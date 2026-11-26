@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import List
 from abc import ABC, abstractmethod
-from ..errors.errors import RuntimeError
+from ..errors.errors import InstinctRuntimeError
 
 # Tipo Raiz
 @dataclass
@@ -48,7 +48,6 @@ class Program(AstNode):
     def format(self, indent=0):
         lines = "\n".join(statement.format(0) for statement in self.body)
         return f"{self.head.format()}\n-----Cuerpo-----\n{lines}\n{self.labels}\n----------------"
-            
 
 # Nodos que describen las instrucciones
 # Sintaxis: <name>:
@@ -66,7 +65,7 @@ class Assign(Statement):
     value : Expression
 
     def format(self, indent=0):
-        return f"{" "*indent}Asignarle a {self.name}:\n{" "*indent}{self.value.format(indent+2)}"
+        return f"{" "*indent}Asignarle a {self.name}:\n{self.value.format(indent+2)}"
 
 # Sintaxis: goto <name>
 @dataclass
@@ -83,7 +82,7 @@ class IfGoto(Statement):
     target : str
 
     def format(self, indent=0):
-        return f"{" "*indent}If-Goto:\n{" "*indent}Condicion:\n{self.condition.format(indent+2)}\n{" "*indent}Apunta a: {self.target}"
+        return f"{" "*indent}If-Goto:\n{" "*indent}Condicion:\n{self.condition.format(indent+2)}\nApunta a: {self.target}"
 
 # Sintaxis: <name>(<arg_1>, ... <arg_n>)
 @dataclass
@@ -152,28 +151,27 @@ class BiOper_Arithmetic(Expression):
     right : Expression
 
     def evaluate(self, context):
-        if isinstance(self.left.value, str) or isinstance(self.right.value, str):
-            raise RuntimeError(f"El operador aritmetico {self.operator} intento operar con texto", self.line)
-        # Caso: +
-        if self.operator == '+':
-            return self.left.value + self.right.value
-        # Caso: -
-        elif self.operator == '-':
-            return self.left.value - self.right.value
-        # Caso: *
-        elif self.operator == '*':
-            return self.left.value * self.right.value
+        left = self.left.evaluate(context)
+        right = self.right.evaluate(context)
         
-        if self.right.evaluate() == 0:
-            raise RuntimeError("Se intento dividir por cero", self.line)
+        if isinstance(left, str) or isinstance(right, str):
+            raise InstinctRuntimeError(f"El operador aritmetico {self.operator} intento operar con texto", self.line)
+        # Caso: +
+        if self.operator == '+': return left + right
+        # Caso: -
+        if self.operator == '-': return left - right
+        # Caso: *
+        if self.operator == '*': return left * right
+        
+        if right == 0:
+            raise InstinctRuntimeError("Se intento dividir por cero", self.line)
         # Caso: /
-        elif self.operator == '/':
-            return self.left.value // self.right.value
+        if self.operator == '/': return left // right
         # Caso: %
-        return self.left.value % self.right.value
+        return left % right
 
     def format(self, indent=0):
-        return f"{" "*indent}Operador Binario ({self.operator}):\n{" "*indent}{self.left.format(indent+2)}\n{" "*indent}{self.right.format(indent+2)}"
+        return f"{" "*indent}Operador Binario ({self.operator}):\n{self.left.format(indent+2)}\n{" "*indent}{self.right.format(indent+2)}"
 
 # Operador Binario Comparador
 @dataclass
@@ -183,48 +181,29 @@ class BiOper_Comparator(Expression):
     right : Expression
 
     def evaluate(self, context):
-        if type(self.left.value) != type(self.right.value):
-            raise RuntimeError(f"El operador de comparacion {self.operator} intento comparar un texto y un numero", self.line)
+        left = self.left.evaluate(context)
+        right = self.right.evaluate(context)
         
+        if type(left) != type(right):
+            raise InstinctRuntimeError(f"El operador de comparacion {self.operator} intento comparar un texto y un numero", self.line)
         # Caso: ==
-        elif self.operator == '==':
-            if self.left.value == self.right.value:
-                return 1
-            return 0
-        
+        if self.operator == '==': return int(left == right)
         # Caso: !=
-        elif self.operator == '!=':
-            if self.left.value != self.right.value:
-                return 1
-            return 0
+        if self.operator == '!=': return int(left != right)
         
-        if isinstance(self.left.value, str) or isinstance(self.right.value, str):
-            raise RuntimeError(f"El operador de comparacion {self.operator} intento comparar un texto", self.line)
+        if isinstance(left, str) or isinstance(right, str):
+            raise InstinctRuntimeError(f"El operador de comparacion {self.operator} intento comparar un texto", self.line)
         # Caso: >=
-        elif self.operator == '>=':
-            if self.left.value >= self.right.value:
-                return 1
-            return 0
-        
+        if self.operator == '>=': return int(left >= right)        
         # Caso: <=
-        elif self.operator == '<=':
-            if self.left.value <= self.right.value:
-                return 1
-            return 0
-
+        if self.operator == '<=': return int(left <= right)
         # Caso: >
-        elif self.operator == '>':
-            if self.left.value > self.right.value:
-                return 1
-            return 0
-        
+        if self.operator == '>': return int(left > right)
         # Caso: <
-        if self.left.value < self.right.value:
-            return 1
-        return 0
+        return int(left < right)
 
     def format(self, indent=0):
-        return f"{" "*indent}Operador Binario ({self.operator}):\n{" "*indent}{self.left.format(indent+2)}\n{" "*indent}{self.right.format(indent+2)}"
+        return f"{" "*indent}Operador Binario ({self.operator}):\n{self.left.format(indent+2)}\n{" "*indent}{self.right.format(indent+2)}"
 
 # Operador Binario Logico
 @dataclass
@@ -234,19 +213,16 @@ class BiOper_Logic(Expression):
     right : Expression
 
     def evaluate(self, context):
+        left = self.left.evaluate(context)
+        right = self.right.evaluate(context)
         # Caso: and
         if self.operator == 'and':
-            if self.left.value in [0, ""] or self.right.value in [0, ""]:
-                return 0
-            return 1
-        
+            return int(left in [0, ""] or right in [0, ""])
         # Caso: or
-        if self.left.value in [0, ""] and self.right.value in [0, ""]:
-            return 0
-        return 1
+        return int(left in [0, ""] and right in [0, ""])
 
     def format(self, indent=0):
-        return f"{" "*indent}Operador Binario ({self.operator}):\n{" "*indent}{self.left.format(indent+2)}\n{" "*indent}{self.right.format(indent+2)}"
+        return f"{" "*indent}Operador Binario ({self.operator}):\n{self.left.format(indent+2)}\n{" "*indent}{self.right.format(indent+2)}"
 
 # Operador Unario (menos, not)
 @dataclass
@@ -255,22 +231,18 @@ class UniOper(Expression):
     operand : Expression
 
     def evaluate(self, context):
+        op = self.operand.evaluate(context)
         # Caso: -
         if self.operator == '-':
-            if isinstance(self.operand.value, str):
-                raise RuntimeError(f"El operador {self.operator} intento operar con un texto", self.line)
-            return -self.operand.value
-        
+            if isinstance(op, str):
+                raise InstinctRuntimeError(f"El operador {self.operator} intento operar con un texto", self.line)
+            return -op
         # Caso : not
-        if self.operand.value in [0, ""]:
-            return 1
-        return 0
+        return int(op in [0, ""])
     
     def format(self, indent=0):
-        return f"{" "*indent}Operador Unario ({self.operator}):\n{" "*indent}{self.operand.format(indent+2)}"
+        return f"{" "*indent}Operador Unario ({self.operator}):\n{self.operand.format(indent+2)}"
 
 #Printear los nodos
-def DumpAst(node, indent: int = 0) -> None:
+def DumpAst(node) -> None:
     print(node.format())
-    
-    

@@ -28,7 +28,7 @@ class SemanticAnalyzer:
     
     def reset(self):
         self.errors : list[tuple[int, str]] = [] # Errores
-        self.labels : dict[str : int] = {} # { Nombre : Linea }
+        self.labels : dict[str, int] = {} # { Nombre : Linea }
         self.gotos : list[tuple[str, int]] = [] # [Destino, Linea]
         self.assigned : set[str] = set() # Variables
         self.uses : list[tuple[str, int]] = [] # [Nombre, Linea]
@@ -38,12 +38,12 @@ class SemanticAnalyzer:
         self.reset()
         
         # Forma el contexto. Revisa todas las etiquetas existentes
-        for node in program.body:
+        for idx, node in enumerate(program.body):
             if isinstance(node, Label):
-                self.VISIT_METHODS[Label](node)
+                self.visit_Label(node, idx)
         
         # Visita el resto de nodos y verifica su correctitud semantica
-        for statement in program.body:
+        for node in program.body:
             if not isinstance(node, Label):
                 self.VISIT_METHODS[type(node)](node)
         
@@ -52,15 +52,15 @@ class SemanticAnalyzer:
             raise SemanticError(sorted(self.errors, key=lambda e: (e[0] == 0, e[0])))
         
         # Agrega las etiquetas
-        program.labels = {name: idx for name, idx in self.labels.items()}
+        program.labels = {name: idx for name, (idx, _) in self.labels.items()}
 
     # Visitar Label: comprueba si es una etiqueta nueva (la agrega) o ya existente (reporta error)
-    def visit_Label(self, node):
+    def visit_Label(self, node, idx):
         if node.name in self.labels:
             first = self.labels[node.name][1]
             self.errors.append((node.line, f"Etiqueta duplicada '{node.name}', ya definida en linea {first}"))
         else:
-            self.labels[node.name] = (node.line)
+            self.labels[node.name] = (idx, node.line)
 
     # Metodo auxiliar para analizar llamados de funciones o acciones
     def check_call(self, node, kind: str, arity: int | None, other_kind: str, other_arity: int | None):

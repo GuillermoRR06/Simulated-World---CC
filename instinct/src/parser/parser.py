@@ -19,7 +19,13 @@ class Parser:
         start = self.find_start(lines)
         
         if start is None:
-            head_lines, body_lines, closing_line = lines, [], 0
+            head_lines = []
+            for token in lines:
+                if token[0].typ == TokenType.ID and token[0].val in self.head.FIELDS:
+                    head_lines.append(token)
+                else:
+                    break
+            body_lines, closing_line = [], 0
             errors.append((0, "Falta la etiqueta obligatoria 'start:'."))
         else:
             head_lines, body_lines = lines[:start], lines[start:]

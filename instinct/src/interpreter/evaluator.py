@@ -1,4 +1,4 @@
-from ..errors.errors import RuntimeError
+from ..errors.errors import InstinctRuntimeError
 from ..semantic.catalog import Catalog
 from ..runtime.state import RuntimeState
 from ..runtime.environment import RuntimeEnvironment
@@ -16,12 +16,12 @@ class EvaltuationContext:
             return self.state.variables[name]
         
         if self.catalog.is_constant(name):
-            return self.catalog.constant_value[name]
+            return self.catalog.constant_value(name)
         
         if self.catalog.is_perception(name):
             return self.env.read_perception(name)
         
-        raise RuntimeError(f"'{name}' no es una variable, ni una constante, ni una percepcion", self.line)
+        raise InstinctRuntimeError(f"'{name}' no es una variable, ni una constante, ni una percepcion", self.line)
     
     def call_function(self, name: str, args):
         return self.env.call_function(name, args)

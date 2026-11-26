@@ -41,6 +41,6 @@ tokens = lex.tokenize(test_code)
 print(tokens)
 
 pars = Parser(tokens)
-program = pars.Parse()
+program = pars.parse()
 print("=== AST GENERADO CON ÉXITO ===")
 DumpAst(program)
