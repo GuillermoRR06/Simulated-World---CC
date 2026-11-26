@@ -4,3 +4,11 @@ class WorldObject:
         self.char = char
         self.resource_max = resource_max
         self.resource = resource_max
+
+    def new_instance(self) -> "WorldObject":
+
+        return WorldObject(
+            name=self.name,
+            char=self.char,
+            resource_max=self.resource_max
+        )
