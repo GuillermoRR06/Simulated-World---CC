@@ -1,0 +1,3 @@
+object House
+char H
+resource_max 150

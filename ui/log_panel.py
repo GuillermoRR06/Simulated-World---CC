@@ -20,7 +20,7 @@ class LogPanel(QGroupBox):
 
         self.log_output.setMaximumBlockCount(1000)
 
-        self.log_output.setMaximumHeight(150)
+        self.log_output.setFixedHeight(75)
 
         self.clear_button = QPushButton(
             "Limpiar registro"

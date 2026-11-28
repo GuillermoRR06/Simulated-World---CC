@@ -1,0 +1,16 @@
+Attack on Instinct — recursos visuales iniciales
+
+Generados con la herramienta de generación de imágenes integrada.
+Se conservan los PNG originales; Qt adapta cada imagen al tamaño de la casilla al dibujar.
+
+grass.png
+Transparencia solicitada: false
+Use case: stylized-concept. Asset type: ONE square terrain tile PNG for a small 2D pixel-art grid simulation named Attack on Instinct. Create a single subtle olive-green grassy ground texture, directly overhead orthographic view, covering the entire square edge to edge; matching opposite edges for tiling. Coarse low-resolution pixel art visually designed on a 32 by 32 logical pixel grid, enlarged crisply, clean hard-edged square pixels, restrained 6-color palette. Low contrast moss-green grass with just a few tiny paired blade clusters, quiet background readable behind characters. Flat terrain only, no perspective, no isolated raised block, no border or margins, no text, no labels, no objects, no trees, no flowers, no path, no grid lines, no gradients, no smoothing. Square composition, opaque green all the way to every edge.
+
+rock.png
+Transparencia solicitada: true
+Use case: stylized-concept. Asset type: ONE object sprite PNG for a small 2D pixel-art grid simulation named Attack on Instinct. One modest gray boulder with three simple blocky facets, seen from a slightly elevated top-down 3/4 RPG viewpoint. Centered, occupies about 75 percent of a square canvas, fully visible with even transparent margin. Coarse low-resolution pixel art designed on a 32 by 32 logical pixel grid and enlarged crisply, hard square pixel edges, outline in charcoal, restrained 6-color warm-gray palette, light from upper left. Genuine transparent background alpha, including around the rock. No ground patch, no grass, no colored backing, no checkerboard drawn into image, no frame, no floor shadow, no words, no labels, no watermark, no gradients or smoothing. Readable as a single small obstacle at 40 screen pixels.
+
+eldian.png
+Transparencia solicitada: true
+Use case: stylized-concept. Asset type: ONE standing character sprite PNG for a small top-down 2D pixel-art simulation inspired by Attack on Titan, Attack on Instinct. A generic adult Eldian male scout, fully clothed, short dark-brown hair, tan cropped military jacket, sage-green short cloak, white trousers with a few dark harness straps, tall brown boots, visible plain WHITE armband on left upper arm. Standing idle facing toward the viewer in a slightly elevated classic RPG perspective; full body including feet, one character only, no weapon. Coarse low-resolution pixel art designed on a 32 by 32 logical pixel grid and enlarged crisply, large readable 3/4 body silhouette, compact head, crisp hard square pixel edges, restrained 12-color olive/tan/cream/charcoal palette, no tiny decorative detail, no antialiasing. Character centered occupying about 85 percent of square canvas height, small even transparent margins. Genuine transparent background alpha. No background or scenery, no ground patch, no shadow, no frame, no sprite sheet, no lettering or logo, no checkerboard painted into image.

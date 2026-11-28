@@ -1,4 +1,6 @@
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Signal, QSize, Qt
+
+from PySide6.QtGui import QIcon
 
 from PySide6.QtWidgets import (
     QComboBox,
@@ -7,11 +9,16 @@ from PySide6.QtWidgets import (
     QLabel,
     QPushButton,
     QSpinBox,
+    QAbstractItemView,
+    QListWidget,
+    QListWidgetItem,
+    QSizePolicy
 )
 
 from simulation.model.map_definition import MapDefinition
 from simulation.model.species import Species
 
+from .asset_manager import AssetManager
 
 class PreparationPanel(QGroupBox):
 
@@ -25,9 +32,15 @@ class PreparationPanel(QGroupBox):
     ):
         super().__init__("Preparación")
 
+        self.assets = AssetManager()
+
         self._build_ui(
             available_maps,
             available_species
+        )
+        self.species_list.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Expanding
         )
 
 
@@ -37,6 +50,18 @@ class PreparationPanel(QGroupBox):
         available_species: list[Species]
     ):
         layout = QFormLayout(self)
+
+        self._build_species_list(
+            available_species)
+
+
+        layout.addRow(
+            QLabel("Unidades:")
+        )
+        layout.addRow(
+            self.species_list
+        )
+
 
         self.map_combo = QComboBox()
 
@@ -55,9 +80,8 @@ class PreparationPanel(QGroupBox):
         )
         self.seed_input.setValue(42)
 
-        self.load_button = QPushButton(
-            "Cargar mapa"
-        )
+        self.seed_input.setKeyboardTracking(False)
+
 
         layout.addRow(
             "Mapa:",
@@ -74,16 +98,7 @@ class PreparationPanel(QGroupBox):
             self.seed_input
         )
 
-        layout.addRow(self.load_button)
 
-        self.species_combo = QComboBox()
-
-        for species in available_species:
-        
-            self.species_combo.addItem(
-                species.name,
-                species
-            )
 
         self.mode_combo = QComboBox()
 
@@ -102,17 +117,11 @@ class PreparationPanel(QGroupBox):
             "remove"
         )
 
-        layout.addRow(
-            "Especie:",
-            self.species_combo
-        )
 
         layout.addRow(
             "Modo:",
             self.mode_combo
         )
-
-
         self.map_combo.currentIndexChanged.connect(
             self._update_dimensions
         )
@@ -121,34 +130,32 @@ class PreparationPanel(QGroupBox):
             self._request_map
         )
 
-        self.load_button.clicked.connect(
+        self.seed_input.valueChanged.connect(
             self._request_map
         )
 
         self._update_dimensions()
 
+
+
     def _update_dimensions(
         self,
         index: int = -1
     ):
-        map_definition = (
-            self.map_combo.currentData()
-        )
+        map_definition = self.map_combo.currentData()
 
         if map_definition is None:
+
             self.dimensions_label.setText(
                 "Sin mapas disponibles"
             )
 
-            self.load_button.setEnabled(False)
             return
 
         self.dimensions_label.setText(
             f"{map_definition.width} x "
             f"{map_definition.height}"
         )
-
-        self.load_button.setEnabled(True)
 
     def _request_map(self, *_args):
         map_definition = (
@@ -163,10 +170,57 @@ class PreparationPanel(QGroupBox):
             self.seed_input.value(),
         )
 
-    def selected_species(self):
-    
-        return self.species_combo.currentData()
+    def selected_species(self) -> Species | None:
+        selected = self.species_list.selectedItems()
+
+        if not selected:
+            return None
+
+        item = selected[0]
+
+        return item.data(
+            Qt.ItemDataRole.UserRole
+        )
 
     def selected_mode(self) -> str:
     
         return self.mode_combo.currentData()
+
+
+    def _build_species_list(
+        self,
+        available_species: list[Species],
+    ):
+        self.species_list = QListWidget()
+
+        self.species_list.setSelectionMode(
+            QAbstractItemView.SelectionMode.SingleSelection
+        )
+
+        self.species_list.setIconSize(QSize(40, 40))
+        self.species_list.setSpacing(3)
+        self.species_list.setMinimumHeight(180)
+
+        for species in available_species:
+            item = QListWidgetItem(species.name)
+
+            item.setData(
+                Qt.ItemDataRole.UserRole,
+                species,
+            )
+
+            item.setSizeHint(QSize(0, 52))
+
+            pixmap = self.assets.get(
+                "creature",
+                species.name,
+                40,
+            )
+
+            if pixmap is not None:
+                item.setIcon(QIcon(pixmap))
+
+            self.species_list.addItem(item)
+
+        if self.species_list.count() > 0:
+            self.species_list.setCurrentRow(0)

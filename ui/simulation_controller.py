@@ -122,9 +122,6 @@ class SimulationController(QObject):
             f"Mapa cargado: {map_definition.name}"
         )
 
-        self.report_event(
-            f"Mapa cargado: {map_definition.name}"
-        )
 
     def place_creature(
         self,

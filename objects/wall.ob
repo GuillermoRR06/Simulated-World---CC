@@ -1,0 +1,3 @@
+object Wall
+char W
+resource_max 200

@@ -6,9 +6,11 @@ from PySide6.QtWidgets import (
     QLabel,
     QPushButton,
     QGroupBox,
-    QComboBox
+    QComboBox,
+    QGridLayout,
 
 )
+from PySide6.QtCore import Qt
 
 from .simulation_controller import (
     SimulationController,
@@ -24,6 +26,10 @@ from simulation.model.map_definition import (
 from simulation.model.species import Species
 
 from .log_panel import LogPanel
+from .creature_inspector import CreatureInspector
+
+from simulation.model.creature import Creature
+from .minimap import MiniMap
 
 class MainWindow(QMainWindow):
 
@@ -64,134 +70,132 @@ class MainWindow(QMainWindow):
             central_widget
         )
 
-        main_layout = QVBoxLayout(
+        main_layout = QGridLayout(
             central_widget
         )
 
+        main_layout.setSpacing(8)
+
+        main_layout.setColumnStretch(0, 1)
+        main_layout.setColumnStretch(1, 4)
+        main_layout.setColumnStretch(2, 1)
+
+        main_layout.setRowStretch(1, 1)
 
         # --------------------------------
         # Información
         # --------------------------------
 
+        top_layout = QHBoxLayout()
+        
         self.state_label = QLabel(
             "Estado: PREPARATION"
         )
-
+        self.state_label.setObjectName(
+            "stateLabel"
+        )
+        
+        self.title_label = QLabel(
+            "INSTINCT"
+        )
+        self.title_label.setObjectName(
+            "gameTitleLabel"
+        )
+        self.title_label.setAlignment(
+            Qt.AlignmentFlag.AlignCenter
+        )
+        
         self.tick_label = QLabel(
             "Tick: 0"
         )
-
-        main_layout.addWidget(
-            self.state_label
+        self.tick_label.setObjectName(
+            "tickLabel"
         )
-
-        main_layout.addWidget(
-            self.tick_label
+        self.tick_label.setAlignment(
+            Qt.AlignmentFlag.AlignRight
+            | Qt.AlignmentFlag.AlignVCenter
         )
-
-
-        content_layout = QHBoxLayout()
-
-        left_layout = QVBoxLayout()
+        
+        top_layout.addWidget(
+            self.state_label,
+            1
+        )
+        
+        top_layout.addWidget(
+            self.title_label,
+            2
+        )
+        
+        top_layout.addWidget(
+            self.tick_label,
+            1
+        )
+        
+        main_layout.addLayout(
+            top_layout,
+            0, 0, 1, 3
+        )
+        # --------------------------------
+        # Panel de preparación
+        # --------------------------------
 
         self.preparation_panel = PreparationPanel(
             self.available_maps,
             self.available_species
         )
 
-        left_layout.addWidget(
-            self.preparation_panel
+        main_layout.addWidget(
+            self.preparation_panel,
+            1, 0
         )
 
-        left_layout.addStretch()
-
-        content_layout.addLayout(
-            left_layout,
-            1
-        )
+        # --------------------------------
+        # Mapa principal
+        # --------------------------------
 
         self.world_view = WorldView(
             self.controller.simulator.world
         )
 
-        content_layout.addWidget(
+        main_layout.addWidget(
             self.world_view,
-            4
+            1, 1
         )
 
-        self.info_panel = QGroupBox(
-    "Creature information"
-)
+        # --------------------------------
+        # Inspector
+        # --------------------------------
 
-        info_layout = QVBoxLayout(
-            self.info_panel
+        self.creature_inspector = CreatureInspector()
+
+        main_layout.addWidget(
+            self.creature_inspector,
+            1, 2
         )
 
+        # --------------------------------
+        # Minimapa
+        # --------------------------------
 
-        self.species_label = QLabel(
-            "Species: -"
+        self.minimap = MiniMap(
+            self.world_view
         )
 
-        self.faction_label = QLabel(
-            "Faction: -"
+        minimap_panel = QGroupBox("Minimapa")
+
+        minimap_layout = QVBoxLayout(
+            minimap_panel
         )
 
-        self.health_label = QLabel(
-            "Health: -"
+        minimap_layout.addWidget(
+            self.minimap
         )
 
-        self.age_label = QLabel(
-            "Age: -"
+        main_layout.addWidget(
+            minimap_panel,
+            3, 0
         )
 
-        self.position_label = QLabel(
-            "Position: -"
-        )
-
-        self.vision_label = QLabel(
-            "Vision: -"
-        )
-
-        self.lifespan_label = QLabel(
-            "Lifespan: -"
-        )
-
-        info_layout.addWidget(
-    self.species_label
-)
-
-        info_layout.addWidget(
-            self.faction_label
-        )
-
-        info_layout.addWidget(
-            self.health_label
-        )
-
-        info_layout.addWidget(
-            self.age_label
-        )
-
-        info_layout.addWidget(
-            self.position_label
-        )
-
-        info_layout.addWidget(
-            self.vision_label
-        )
-
-        info_layout.addWidget(
-            self.lifespan_label
-        )
-
-        content_layout.addWidget(
-    self.info_panel,
-    1
-)
-
-        main_layout.addLayout(
-            content_layout
-        )
 
         # --------------------------------
         # Controles
@@ -203,6 +207,7 @@ class MainWindow(QMainWindow):
         self.start_button = QPushButton(
             "Start"
         )
+        self.start_button.setObjectName("startButton")
 
         self.pause_button = QPushButton(
             "Pause"
@@ -215,7 +220,15 @@ class MainWindow(QMainWindow):
         self.reset_button = QPushButton(
             "Reset"
         )
+        self.reset_button.setObjectName("resetButton")
 
+        self.center_button = QPushButton(
+            "Centrar cámara"
+        )
+
+        controls_layout.addWidget(
+            self.center_button
+        )
 
         controls_layout.addWidget(
             self.start_button
@@ -231,13 +244,14 @@ class MainWindow(QMainWindow):
 
 
         main_layout.addLayout(
-            controls_layout
+            controls_layout,
+            2, 0, 1, 3
         )
-
         self.log_panel = LogPanel()
-
+        
         main_layout.addWidget(
-            self.log_panel
+            self.log_panel,
+            3, 1, 1, 2
         )
 
 
@@ -321,22 +335,39 @@ class MainWindow(QMainWindow):
             self.log_panel.append_message
         )
 
-    def _update_tick(
-        self,
-        tick: int
-    ):
+        self.center_button.clicked.connect(
+            self.world_view.reset_view
+        )
 
+        self.world_view.view_changed.connect(
+            self.minimap.update
+        )
+
+    def _update_tick(self, tick: int):
+    
         self.tick_label.setText(
             f"Tick: {tick}"
         )
-
+    
+        creature = self.selected_creature
+    
+        if creature is not None:
+        
+            if creature.x is None or creature.y is None:
+            
+                self.selected_creature = None
+    
+                self.world_view.selected_creature = None
+    
+                self._clear_creature_info()
+    
+            else:
+            
+                self._show_creature_info(
+                    creature
+                )
+    
         self.world_view.draw_world()
-
-        if self.selected_creature is not None:
-
-            self._show_creature_info(
-                self.selected_creature
-            )
 
     def _update_state(
         self,
@@ -352,78 +383,32 @@ class MainWindow(QMainWindow):
 )
 
     def _show_creature_info(
-    self,
-    creature
-):
+        self,
+        creature: Creature
+    ):
+    
         self.selected_creature = creature
-
-        self.species_label.setText(
-            f"Species: {creature.species.name}"
-        )
-
-        self.faction_label.setText(
-            f"Faction: {creature.species.faction}"
-        )
-
-        self.health_label.setText(
-            f"Health: {creature.health}"
-        )
-
-        self.age_label.setText(
-            f"Age: {creature.age}"
-        )
-
-        self.position_label.setText(
-            f"Position: ({creature.x}, {creature.y})"
-        )
-
-        self.vision_label.setText(
-            f"Vision: {creature.species.vision}"
-        )
-
-        self.lifespan_label.setText(
-            f"Lifespan: {creature.species.lifespan}"
-        )
-
-    def _selection_changed(self,creature):
-
-        self.selected_creature = creature
-        if creature is None:
-            self._clear_creature_info()
-            return
-        self._show_creature_info(
+    
+        self.creature_inspector.show_creature(
             creature
         )
 
+    def _selection_changed(self, creature):
+    
+        self.selected_creature = creature
+    
+        if creature is None:
+        
+            self._clear_creature_info()
+    
+        else:
+        
+            self._show_creature_info(creature)
+    
     def _clear_creature_info(self):
+    
+        self.creature_inspector.clear()
 
-        self.species_label.setText(
-            "Species: -"
-        )
-
-        self.faction_label.setText(
-            "Faction: -"
-        )
-
-        self.health_label.setText(
-            "Health: -"
-        )
-
-        self.age_label.setText(
-            "Age: -"
-        )
-
-        self.position_label.setText(
-            "Position: -"
-        )
-
-        self.vision_label.setText(
-            "Vision: -"
-        )
-
-        self.lifespan_label.setText(
-            "Lifespan: -"
-        )
 
     def _world_changed(
     self,

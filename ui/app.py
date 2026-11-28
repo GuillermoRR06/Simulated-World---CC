@@ -20,10 +20,11 @@ from .simulation_controller import (
 )
 
 from simulation.model.species import Species
-
+from .theme import apply_theme
 
 def main() -> int:
     app = QApplication(sys.argv)
+    apply_theme(app)
 
     root_path = (
         Path(__file__).resolve().parents[1]

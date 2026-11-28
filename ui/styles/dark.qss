@@ -1,0 +1,223 @@
+/* Fuente general. Los colores de base los aporta QPalette. */
+QWidget {
+    font-family: "Segoe UI";
+    font-size: 13px;
+}
+
+/* Paneles: preparación, inspector y registro. */
+QGroupBox {
+    background-color: #1C2B36;
+    color: #EEE8D5;
+    border: 1px solid #405563;
+    border-radius: 6px;
+    margin-top: 12px;
+    padding: 8px;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    left: 10px;
+    padding: 0 5px;
+    color: #DCC79A;
+}
+
+QGroupBox:disabled {
+    border-color: #30434F;
+}
+
+QGroupBox::title:disabled {
+    color: #83939F;
+}
+
+QLabel {
+    color: #EEE8D5;
+    background-color: transparent;
+}
+
+QLabel:disabled {
+    color: #83939F;
+}
+
+QLabel#tickLabel {
+    font-family: "Consolas";
+    font-size: 16px;
+    font-weight: bold;
+    color: #DCC79A;
+}
+
+/* Botones y sus estados. */
+QPushButton {
+    background-color: #283E4C;
+    color: #EEE8D5;
+    border: 1px solid #506572;
+    border-radius: 5px;
+    padding: 5px 10px;
+    min-height: 18px;
+}
+
+QPushButton:enabled:hover {
+    background-color: #354F60;
+}
+
+QPushButton:enabled:pressed {
+    background-color: #1C2D38;
+}
+
+QPushButton:enabled:focus {
+    border-color: #DCC79A;
+}
+
+QPushButton:disabled {
+    background-color: #18232B;
+    color: #83939F;
+    border-color: #30434F;
+}
+
+QPushButton#startButton:enabled {
+    background-color: #355D4A;
+    font-weight: bold;
+}
+
+QPushButton#startButton:enabled:hover {
+    background-color: #44745A;
+}
+
+QPushButton#startButton:enabled:pressed {
+    background-color: #284738;
+}
+
+QPushButton#resetButton:enabled {
+    background-color: #7A4040;
+}
+
+QPushButton#resetButton:enabled:hover {
+    background-color: #945656;
+}
+
+QPushButton#resetButton:enabled:pressed {
+    background-color: #5B3030;
+}
+
+/* Lista de unidades. La selección también se ve sin el foco. */
+QListWidget {
+    background-color: #101D27;
+    color: #EEE8D5;
+    border: 1px solid #405563;
+    border-radius: 4px;
+    selection-background-color: #355D4A;
+    selection-color: #FFFFFF;
+}
+
+QListWidget::item {
+    border: 1px solid transparent;
+    border-radius: 4px;
+}
+
+QListWidget::item:enabled:hover {
+    background-color: #263F4E;
+}
+
+QListWidget::item:enabled:selected {
+    background-color: #355D4A;
+    color: #FFFFFF;
+    border-color: #DCC79A;
+}
+
+QListWidget:disabled {
+    background-color: #14212A;
+    color: #83939F;
+}
+
+QListWidget::item:disabled:selected {
+    background-color: #293B46;
+    color: #A9B8C0;
+    border-color: #506572;
+}
+
+/* Fusion dibuja las flechas y controles con la paleta oscura. */
+QComboBox, QSpinBox {
+    min-height: 24px;
+}
+
+/* Mapa y registro de eventos. */
+QGraphicsView {
+    background-color: #0C141B;
+    border: 1px solid #405563;
+}
+
+QPlainTextEdit {
+    background-color: #0C141B;
+    color: #D5DDCF;
+    border: 1px solid #405563;
+    border-radius: 4px;
+    padding: 5px;
+    font-family: "Consolas";
+    font-size: 12px;
+    selection-background-color: #355D4A;
+    selection-color: #FFFFFF;
+}
+
+QToolTip {
+    background-color: #263A47;
+    color: #EEE8D5;
+    border: 1px solid #6F8490;
+    padding: 5px;
+}
+
+QLabel#gameTitleLabel {
+    color: #E8D9A8;
+    font-size: 28px;
+    font-weight: 700;
+    font-family: "Cinzel", "Georgia", serif;
+    letter-spacing: 3px;
+    padding: 4px 0px 8px 0px;
+}
+
+QLabel#stateLabel {
+    color: #EEE8D5;
+    font-size: 14px;
+    font-family: "Segoe UI";
+}
+
+QLabel#tickLabel {
+    color: #F2D479;
+    font-size: 22px;
+    font-weight: bold;
+    font-family: "Consolas";
+}
+
+/* CREATURE INSPECTOR */
+
+QLabel#creaturePortrait {
+    background-color: #101D27;
+    border: 1px solid #506572;
+    border-radius: 6px;
+    color: #A9B8C0;
+    font-size: 13px;
+}
+
+QLabel#creatureName {
+    color: #E8D9A8;
+    font-size: 22px;
+    font-weight: bold;
+    padding: 4px;
+}
+
+QProgressBar {
+    background-color: #101D27;
+    border: 1px solid #405564;
+    border-radius: 4px;
+    min-height: 12px;
+    max-height: 12px;
+}
+
+QProgressBar#healthBar::chunk {
+    background-color: #588E66;
+    border-radius: 3px;
+}
+
+QProgressBar#ageBar::chunk {
+    background-color: #C7AA6A;
+    border-radius: 3px;
+}
